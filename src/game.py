@@ -69,15 +69,13 @@ class Game:
                 pygame.draw.rect(surface, color, rect)
 
     def show_last_move(self, surface):
-        theme = self.config.theme
-
         if self.board.last_move:
             initial = self.board.last_move.initial
             final = self.board.last_move.final
 
             for pos in [initial, final]:
                 # color
-                color = theme.trace.light if (pos.row + pos.col) % 2 == 0 else theme.trace.dark
+                color = light if (pos.row + pos.col) % 2 == 0 else dark
                 # rect
                 rect = (pos.col * SQSIZE, pos.row * SQSIZE, SQSIZE, SQSIZE)
                 # blit
@@ -99,15 +97,6 @@ class Game:
 
     def set_hover(self, row, col):
         self.hovered_sqr = self.board.squares[row][col]
-
-    def change_theme(self):
-        self.config.change_theme()
-
-    def play_sound(self, captured=False):
-        if captured:
-            self.config.capture_sound.play()
-        else:
-            self.config.move_sound.play()
 
     def reset(self):
         self.__init__()

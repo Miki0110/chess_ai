@@ -1,11 +1,10 @@
 from constants import *
 from pieces import *
-from move import Move
+
 
 class Board:
     def __init__(self):
         self.squares = [[Square(row, col) for col in range(COLS)] for row in range(ROWS)]
-        self.squares = [[0, 0, 0, 0, 0, 0, 0, 0] for col in range(COLS)]
         self.last_move = None
         self._create()
         self._add_pieces('white')
@@ -85,7 +84,7 @@ class Square:
         return self.row == other.row and self.col == other.col
 
     def has_piece(self):
-        return self.piece != None
+        return self.piece is not None
 
     def isempty(self):
         return not self.has_piece()

@@ -41,6 +41,7 @@ class Mouse:
         self.dragging = False
 
     # Function for converting between pixel and board position
-    def pix_to_pos(self, pos):
+    @staticmethod
+    def pix_to_pos(pos):
        board_pos = pos[0] // SQSIZE, pos[1] // SQSIZE
        return board_pos

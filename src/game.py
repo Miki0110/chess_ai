@@ -54,15 +54,15 @@ class Game:
                         surface.blit(img, piece.texture_rect)
 
     def show_moves(self, surface):
-        theme = self.config.theme
-
-        if self.dragger.dragging:
-            piece = self.dragger.piece
+        light_color = '#C86464'
+        dark_color = '#C84646'
+        if self.mouse.dragging:
+            piece = self.mouse.piece
 
             # loop all valid moves
             for move in piece.moves:
                 # color
-                color = theme.moves.light if (move.final.row + move.final.col) % 2 == 0 else theme.moves.dark
+                color = light_color if (move.final.row + move.final.col) % 2 == 0 else dark_color
                 # rect
                 rect = (move.final.col * SQSIZE, move.final.row * SQSIZE, SQSIZE, SQSIZE)
                 # blit

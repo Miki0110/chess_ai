@@ -4,6 +4,7 @@ import sys
 from constants import *
 from chess_board import Square, Board
 from game import Game
+from move import Move
 
 
 class Main:
@@ -23,11 +24,14 @@ class Main:
 
         while True:
             # Render the game
-            game.show_bg(self.screen)
-            game.show_pieces(self.screen)
-
+            game.show_bg(screen)
+            # Render the pieces
+            game.show_pieces(screen)
+            # If we are holding a piece
             if mouse.dragging:
-                mouse.render_blit(self.screen)
+                game.show_moves(screen)
+                game.show_pieces(screen)
+                mouse.render_blit(screen)
 
             # Check for input
             for event in pygame.event.get():
@@ -39,6 +43,8 @@ class Main:
                     if board.squares[clicked_pos[1]][clicked_pos[0]].has_piece():
                         # Retrieve the piece type
                         piece = board.squares[clicked_pos[1]][clicked_pos[0]].piece
+                        # Calc moves
+                        board.calc_moves(piece, clicked_pos[1], clicked_pos[0])
                         # Save the values
                         mouse.save_initial(clicked_pos)
                         mouse.drag_piece(piece)
@@ -51,6 +57,22 @@ class Main:
 
                 # click release
                 elif event.type == pygame.MOUSEBUTTONUP:
+                    if not mouse.dragging:
+                        break
+                    mouse.update_mouse(event.pos)
+                    release_pos = mouse.pix_to_pos((mouse.mouseX, mouse.mouseY))
+
+                    # Create the move
+                    initial = Square(mouse.initial_row, mouse.initial_col)
+                    final = Square(release_pos[1], release_pos[0])
+                    move = Move(initial, final)
+
+                    # Check if it's a valid move
+                    if board.valid_move(mouse.piece, move):
+                        # move the piece
+                        board.move(mouse.piece, move)
+                        game.show_pieces(screen)
+
                     mouse.undrag_piece()  # Let go of whatever we are holding
 
                 # key press

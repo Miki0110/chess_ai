@@ -1,13 +1,44 @@
 from constants import *
 from pieces import *
+from move import Move
 
 class Board:
     def __init__(self):
+        self.squares = [[Square(row, col) for col in range(COLS)] for row in range(ROWS)]
         self.squares = [[0, 0, 0, 0, 0, 0, 0, 0] for col in range(COLS)]
         self.last_move = None
         self._create()
         self._add_pieces('white')
         self._add_pieces('black')
+
+    # Function for calculating the valid moves
+    def calc_moves(self, piece, row, col):
+        # Check for type of piece
+        if isinstance(piece, Pawn):
+            # TODO: Add en passant and pawn upgrade
+            piece.calc_moves(self.squares, row, col)
+        else:
+            piece.calc_moves(self.squares, row, col)
+
+    def move(self, piece, move):
+        initial = move.initial
+        final = move.final
+
+        # update board
+        self.squares[initial.row][initial.col].piece = None
+        self.squares[final.row][final.col].piece = piece
+
+        # note that the piece has moved
+        piece.moved = True
+
+        # Clear moves in the piece
+        piece.clear_moves()
+
+        # Save the move for later
+        self.last_move = move
+
+    def valid_move(self, piece, move):
+        return move in piece.moves
 
     def _create(self):
         for row in range(ROWS):
@@ -69,11 +100,10 @@ class Square:
         return self.isempty() or self.has_enemy_piece(color)
 
     @staticmethod
-    def in_range(*args):
+    def on_board(*args):
         for arg in args:
             if arg < 0 or arg > 7:
                 return False
-
         return True
 
     @staticmethod

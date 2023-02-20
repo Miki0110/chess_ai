@@ -1,6 +1,7 @@
 import os
 from move import Move
 
+
 class Piece:
     def __init__(self, name, color, value, texture=None, texture_rect=None):
         self.name = name
@@ -29,6 +30,19 @@ class Piece:
     def clear_moves(self):
         self.moves = []
 
+    # General function for checking if any piece can attack a specific position
+    def can_attack(self, squares, start_row, start_col, t_row, t_col):
+        from chess_board import Square
+        # Calculate possible moves
+        self.calc_moves(squares, start_row, start_col)
+        # Create move
+        initial = Square(start_row, start_col)
+        final = Square(t_row, t_col)
+        # Create the move
+        move = Move(initial, final)
+        # Return if true
+        return move in self.moves
+
     def calc_moves(self, squares, row, col):
         from chess_board import Square
         # Go through the possible moves, defined by the piece type
@@ -46,7 +60,9 @@ class Piece:
 
                 # Create squares
                 initial = Square(row, col)
-                final = Square(pos_move_row, pos_move_col)
+                # Add in the pieces that can be taken if there is one
+                taken_piece = squares[pos_move_row][pos_move_col].piece
+                final = Square(pos_move_row, pos_move_col, taken_piece)
                 # Create the move
                 move = Move(initial, final)
 
@@ -54,15 +70,13 @@ class Piece:
                 if squares[pos_move_row][pos_move_col].isempty():
                     # Append the move
                     self.add_move(move)
-
                 # If it's an enemy
-                if squares[pos_move_row][pos_move_col].has_enemy_piece(self.color):
+                elif squares[pos_move_row][pos_move_col].has_enemy_piece(self.color):
                     self.add_move(move)
                     break
 
                 # Increment the move
                 pos_move_row, pos_move_col = pos_move_row + row_incr, pos_move_col + col_incr
-
 
 
 class Pawn(Piece):
@@ -104,7 +118,9 @@ class Pawn(Piece):
             if squares[pos_move_row][pos_move_col].has_enemy_piece(self.color):
                 # Set a move in the move class
                 initial = Square(row, col)
-                final = Square(pos_move_row, pos_move_col)
+                # Add in the enemy taken
+                taken_piece = squares[pos_move_row][pos_move_col].piece
+                final = Square(pos_move_row, pos_move_col, taken_piece)
                 move = Move(initial, final)
                 self.add_move(move)
 
@@ -127,7 +143,9 @@ class Knight(Piece):
                 if squares[move_row][move_col].isempty_or_enemy(self.color):
                     # Create squares for moves
                     initial = Square(row, col)
-                    final = Square(move_row, move_col)
+                    # Add in the enemy taken
+                    taken_piece = squares[move_row][move_col].piece
+                    final = Square(move_row, move_col, taken_piece)
                     # Create the move
                     move = Move(initial, final)
                     # append valid move
@@ -143,7 +161,6 @@ class Bishop(Piece):
             (1, 1),  # down-right
             (1, -1)  # down-left
         ]
-
 
 
 class Rook(Piece):
@@ -179,7 +196,6 @@ class King(Piece):
         super().__init__('king', color, 10000.0)
 
     def calc_moves(self, squares, row, col):
-        # TODO: Add castling and check for not allowed moves
         from chess_board import Square
         # Go through the possible moves
         move_directions = [(-1, 1), (-1, -1), (1, 1), (1, -1), (-1, 0), (0, 1), (1, 0), (0, -1)]
@@ -198,3 +214,34 @@ class King(Piece):
                     move = Move(initial, final)
                     # append valid move
                     self.add_move(move)
+        # Check for Castling
+        if self.moved:  # Not possible if we've moved
+            return
+        # Check if left side
+        for i in range(1, 4):
+            # Check if there are any pieces blocking
+            if not squares[row][col-i].isempty():
+                break
+            if isinstance(squares[row][0].piece, Rook):
+                # Create the squares for the move
+                initial = Square(row, col)
+                final = Square(row, 1)
+                # Create the move
+                move = Move(initial, final)
+                move.castling = True
+                # append valid move
+                self.add_move(move)
+        # Check the right side
+        for i in range(1, 3):
+            # Check if there are any pieces blocking
+            if not squares[row][col+i].isempty():
+                break
+            if isinstance(squares[row][7].piece, Rook):
+                # Create the squares for the move
+                initial = Square(row, col)
+                final = Square(row, 6)
+                # Create the move
+                move = Move(initial, final)
+                move.castling = True
+                # append valid move
+                self.add_move(move)

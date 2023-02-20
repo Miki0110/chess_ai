@@ -29,6 +29,32 @@ class Game:
                 # blit
                 pygame.draw.rect(surface, color, rect)
 
+    # Render coordinates
+    def show_coord(self, surface):
+        light_color = (234, 235, 200)
+        dark_color = (119, 154, 88)
+        # For drawing out the square coordinate(numbers)
+        for row in range(ROWS):
+            col = 0
+            color = dark_color if (row + col) % 2 == 0 else light_color
+            # define the label type
+            label_font = pygame.font.SysFont('monospace', 18, bold=True)
+            label = label_font.render(str(ROWS - row), 1, color)
+            label_pos = (5, 5 + row * SQSIZE)
+            # Render it
+            surface.blit(label, label_pos)
+
+        # For drawing out the square coordinate(letters)
+        for col in range(COLS):
+            row = 7
+            color = dark_color if (row + col) % 2 == 0 else light_color
+            # define the label type
+            label_font = pygame.font.SysFont('monospace', 18, bold=True)
+            label = label_font.render(Square.get_alphacol(col), 1, color)
+            label_pos = col * SQSIZE + SQSIZE - 20, HEIGHT - 20
+            # Render it
+            surface.blit(label, label_pos)
+
     # Render the pieces
     def show_pieces(self, surface):
         # Loop through the board position and render the pieces if they are there
@@ -45,7 +71,7 @@ class Game:
                         img = pygame.image.load(piece.texture)
                         # Transform the image to fit the board size
                         original_size = img.get_size()
-                        img = pygame.transform.scale(img, (original_size[0]*0.7, original_size[1]*0.7))
+                        img = pygame.transform.scale(img, (original_size[0]*0.6, original_size[1]*0.6))
                         # center it
                         img_center = col * SQSIZE + SQSIZE // 2, row * SQSIZE + SQSIZE // 2
                         piece.texture_rect = img.get_rect(center=img_center)
@@ -69,26 +95,19 @@ class Game:
                 pygame.draw.rect(surface, color, rect)
 
     def show_last_move(self, surface):
+        light_color = (244, 247, 116)
+        dark_color = (172, 195, 51)
         if self.board.last_move:
             initial = self.board.last_move.initial
             final = self.board.last_move.final
 
             for pos in [initial, final]:
                 # color
-                color = light if (pos.row + pos.col) % 2 == 0 else dark
+                color = light_color if (pos.row + pos.col) % 2 == 0 else dark_color
                 # rect
                 rect = (pos.col * SQSIZE, pos.row * SQSIZE, SQSIZE, SQSIZE)
                 # blit
                 pygame.draw.rect(surface, color, rect)
-
-    def show_hover(self, surface):
-        if self.hovered_sqr:
-            # color
-            color = (180, 180, 180)
-            # rect
-            rect = (self.hovered_sqr.col * SQSIZE, self.hovered_sqr.row * SQSIZE, SQSIZE, SQSIZE)
-            # blit
-            pygame.draw.rect(surface, color, rect, width=3)
 
     # other methods
 

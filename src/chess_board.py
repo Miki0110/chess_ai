@@ -1,3 +1,5 @@
+import copy
+
 from constants import *
 from pieces import *
 
@@ -12,12 +14,7 @@ class Board:
 
     # Function for calculating the valid moves
     def calc_moves(self, piece, row, col):
-        # Check for type of piece
-        if isinstance(piece, Pawn):
-            # TODO: Add en passant and pawn upgrade
-            piece.calc_moves(self.squares, row, col)
-        else:
-            piece.calc_moves(self.squares, row, col)
+        piece.calc_moves(self.squares, row, col)
 
     def move(self, piece, move):
         initial = move.initial
@@ -26,6 +23,20 @@ class Board:
         # update board
         self.squares[initial.row][initial.col].piece = None
         self.squares[final.row][final.col].piece = piece
+
+        # Check for pawn promotion
+        if isinstance(piece, Pawn):
+            # Since pawns can't move backwards we can just assume it doesn't happen
+            if final.row == 0 or final.row == 7:
+                self.squares[final.row][final.col].piece = Queen(piece.color)
+
+        if any(move.castling for move in piece.moves) and piece.moves[piece.moves.index(move)].castling:
+            # Set the direction
+            r_new_col = 2 if final.col == 1 else 5
+            r_old_col = 0 if final.col == 1 else 7
+            # update the board
+            self.squares[final.row][r_new_col].piece = Rook(piece.color)
+            self.squares[final.row][r_old_col].piece = None
 
         # note that the piece has moved
         piece.moved = True
@@ -36,8 +47,50 @@ class Board:
         # Save the move for later
         self.last_move = move
 
+    # Simple check for valid move
     def valid_move(self, piece, move):
-        return move in piece.moves
+        # Else return true false
+        if move not in piece.moves:
+            return
+        # Check if it results in a mate
+        if not self.in_check(piece, move):
+            return True
+
+    # Function for invalidating moves that kill you
+    def in_check(self, piece, move):
+
+        # Copy our board and piece to check if anything happens after moving
+        temp_piece = copy.deepcopy(piece)
+        temp_board = copy.deepcopy(self)
+        # Move the piece
+        temp_board.move(temp_piece, move)
+
+        # Find the current player's king
+        king = None
+        for row in range(ROWS):
+            for col in range(COLS):
+                square = temp_board.squares[row][col]
+                if square.has_piece() and isinstance(square.piece, King) and square.piece.color == piece.color:
+                    king = square
+                    break
+            if king is not None:
+                break
+
+        if king is None:
+            raise ValueError("King not found")
+
+        # Check if any enemy pieces can attack the king
+        for row in range(ROWS):
+            for col in range(COLS):
+                square = temp_board.squares[row][col]
+                if square.has_enemy_piece(piece.color):
+                    # Check if the piece can attack the king
+                    square.piece.calc_moves(temp_board.squares, row, col)
+                    if square.piece.can_attack(temp_board.squares, row, col, king.row, king.col):
+                        return True
+
+        return False
+
 
     def _create(self):
         for row in range(ROWS):
@@ -72,6 +125,9 @@ class Board:
 
 
 class Square:
+    """
+    Class that defines what happens at a square
+    """
     ALPHACOLS = {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f', 6: 'g', 7: 'h'}
 
     def __init__(self, row, col, piece=None):

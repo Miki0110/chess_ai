@@ -7,8 +7,8 @@ from game import Game
 from move import Move
 
 
+# Idk why I made this into a class, could have just used global variables
 class Main:
-
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -25,10 +25,13 @@ class Main:
         while True:
             # Render the game
             game.show_bg(screen)
+            game.show_last_move(screen)
+            game.show_coord(screen)
             # Render the pieces
             game.show_pieces(screen)
-            # If we are holding a piece
-            if mouse.dragging:
+
+            if mouse.dragging:  # If we are holding a piece
+                # Render held piece and it's moves
                 game.show_moves(screen)
                 game.show_pieces(screen)
                 mouse.render_blit(screen)

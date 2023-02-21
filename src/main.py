@@ -46,6 +46,8 @@ class Main:
                     if board.squares[clicked_pos[1]][clicked_pos[0]].has_piece():
                         # Retrieve the piece type
                         piece = board.squares[clicked_pos[1]][clicked_pos[0]].piece
+                        if piece.color != game.next_player:
+                            break
                         # Calc moves
                         board.calc_moves(piece, clicked_pos[1], clicked_pos[0])
                         # Save the values
@@ -75,6 +77,8 @@ class Main:
                         # move the piece
                         board.move(mouse.piece, move)
                         game.show_pieces(screen)
+                        # Set the next players turn
+                        game.next_turn()
 
                     mouse.undrag_piece()  # Let go of whatever we are holding
 

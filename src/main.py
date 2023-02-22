@@ -1,10 +1,10 @@
 import pygame
 import sys
 
-from constants import *
-from chess_board import Square, Board
-from game import Game
-from move import Move
+from src.constants import *
+from src.game_engine.chess_board import Square
+from src.game_engine.game import Game
+from src.game_engine.move import Move
 
 
 # Idk why I made this into a class, could have just used global variables

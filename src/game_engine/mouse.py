@@ -1,6 +1,6 @@
 import pygame
 
-from constants import *
+from src.constants import *
 
 class Mouse:
     def __init__(self):

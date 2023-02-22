@@ -1,5 +1,5 @@
 import os
-from move import Move
+from src.game_engine.move import Move
 
 
 class Piece:
@@ -30,9 +30,19 @@ class Piece:
     def clear_moves(self):
         self.moves = []
 
+    def _add_move(self, in_row, in_col, end_row, end_col):
+        from src.game_engine.chess_board import Square
+        # Create squares
+        initial = Square(in_row, in_col)
+        final = Square(end_row, end_col)
+
+        # Create the move
+        move = Move(initial, final)
+        return move
+
     # General function for checking if any piece can attack a specific position
     def can_attack(self, squares, start_row, start_col, t_row, t_col):
-        from chess_board import Square
+        from src.game_engine.chess_board import Square
         # Calculate possible moves
         self.calc_moves(squares, start_row, start_col)
         # Create move
@@ -44,7 +54,7 @@ class Piece:
         return move in self.moves
 
     def calc_moves(self, squares, row, col):
-        from chess_board import Square
+        from src.game_engine.chess_board import Square
         # Go through the possible moves, defined by the piece type
         for row_incr, col_incr in self.move_directions:
             pos_move_row = row + row_incr
@@ -58,13 +68,8 @@ class Piece:
                 if squares[pos_move_row][pos_move_col].has_team_piece(self.color):
                     break
 
-                # Create squares
-                initial = Square(row, col)
-                # Add in the pieces that can be taken if there is one
-                taken_piece = squares[pos_move_row][pos_move_col].piece
-                final = Square(pos_move_row, pos_move_col, taken_piece)
-                # Create the move
-                move = Move(initial, final)
+                # Create move
+                move = self._add_move(row, col, pos_move_row, pos_move_col)
 
                 # check if the move is empty or has an enemy
                 if squares[pos_move_row][pos_move_col].isempty():
@@ -87,7 +92,7 @@ class Pawn(Piece):
         super().__init__('pawn', color, 1.0)
 
     def calc_moves(self, squares, row, col):
-        from chess_board import Square
+        from src.game_engine.chess_board import Square
         steps = 1 if self.moved else 2
 
         # Forward movement
@@ -100,11 +105,9 @@ class Pawn(Piece):
             # If it's occupied
             if not squares[pos_move_row][col].isempty():
                 break
-            # Set a move in the move class
-            initial = Square(row, col)
-            final = Square(pos_move_row, col)
 
-            move = Move(initial, final)
+            # create move
+            move = self._add_move(row, col, pos_move_row, col)
             self.add_move(move)
 
         # Diagonal moves
@@ -116,13 +119,23 @@ class Pawn(Piece):
                 break
             # If there's an enemy it's a possible move
             if squares[pos_move_row][pos_move_col].has_enemy_piece(self.color):
-                # Set a move in the move class
-                initial = Square(row, col)
-                # Add in the enemy taken
-                taken_piece = squares[pos_move_row][pos_move_col].piece
-                final = Square(pos_move_row, pos_move_col, taken_piece)
-                move = Move(initial, final)
+                # Create move
+                move = self._add_move(row, col, pos_move_row, pos_move_col)
                 self.add_move(move)
+
+        en_pos = 3 if self.color == 'white' else 4
+        # Check for en passant moves
+        if en_pos != row:
+            return
+        pos_move_passant = [-1, 1]
+        for direction in pos_move_passant:
+            # Check if there's a possibility for en passant
+            if squares[row][col+direction].has_enemy_piece(self.color) and squares[row][col+direction].piece.en_passant:
+                # Create the move
+                move = self._add_move(row, col, row+self.dir, col+direction)
+                move.en_passant = True
+                self.add_move(move)
+
 
 
 class Knight(Piece):
@@ -130,7 +143,7 @@ class Knight(Piece):
         super().__init__('knight', color, 3.001)  # I like knights more <3
 
     def calc_moves(self, squares, row, col):
-        from chess_board import Square
+        from src.game_engine.chess_board import Square
         # Since knights can only move in the L shape we check all those positions
         possible_moves = [(-2, 1), (-1, 2), (1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1)]
         possible_moves = [(row + x, col + y) for x, y in possible_moves]
@@ -141,13 +154,8 @@ class Knight(Piece):
             if Square.on_board(move[0], move[1]):  # Checking if it is inside the board
                 # Check occupation of square
                 if squares[move_row][move_col].isempty_or_enemy(self.color):
-                    # Create squares for moves
-                    initial = Square(row, col)
-                    # Add in the enemy taken
-                    taken_piece = squares[move_row][move_col].piece
-                    final = Square(move_row, move_col, taken_piece)
-                    # Create the move
-                    move = Move(initial, final)
+                    # Create moves
+                    move = self._add_move(row, col, move_row, move_col)
                     # append valid move
                     self.add_move(move)
 
@@ -196,7 +204,7 @@ class King(Piece):
         super().__init__('king', color, 10000.0)
 
     def calc_moves(self, squares, row, col):
-        from chess_board import Square
+        from src.game_engine.chess_board import Square
         # Go through the possible moves
         move_directions = [(-1, 1), (-1, -1), (1, 1), (1, -1), (-1, 0), (0, 1), (1, 0), (0, -1)]
         possible_moves = [(row + x, col + y) for x, y in move_directions]
@@ -207,11 +215,8 @@ class King(Piece):
             if Square.on_board(move[0], move[1]):  # Checking if it is inside the board
                 # Check occupation of square
                 if squares[move_row][move_col].isempty_or_enemy(self.color):
-                    # Create squares for moves
-                    initial = Square(row, col)
-                    final = Square(move_row, move_col)
-                    # Create the move
-                    move = Move(initial, final)
+                    # Create moves
+                    move = self._add_move(row, col, move_row, move_col)
                     # append valid move
                     self.add_move(move)
         # Check for Castling
@@ -223,11 +228,9 @@ class King(Piece):
             if not squares[row][col-i].isempty():
                 break
             if isinstance(squares[row][0].piece, Rook):
-                # Create the squares for the move
-                initial = Square(row, col)
-                final = Square(row, 1)
                 # Create the move
-                move = Move(initial, final)
+                move = self._add_move(row, col, row, 1)
+                # Set castling to true
                 move.castling = True
                 # append valid move
                 self.add_move(move)
@@ -238,10 +241,8 @@ class King(Piece):
                 break
             if isinstance(squares[row][7].piece, Rook):
                 # Create the squares for the move
-                initial = Square(row, col)
-                final = Square(row, 6)
-                # Create the move
-                move = Move(initial, final)
+                move = self._add_move(row, col, row, 6)
+                # Set castling to true
                 move.castling = True
                 # append valid move
                 self.add_move(move)

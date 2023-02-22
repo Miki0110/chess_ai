@@ -1,14 +1,13 @@
 import copy
 
-from constants import *
-from pieces import *
+from src.constants import *
+from src.game_engine.pieces import *
 
 
 class Board:
     def __init__(self):
         self.squares = [[Square(row, col) for col in range(COLS)] for row in range(ROWS)]
         self.last_move = None
-        self._create()
         self._add_pieces('white')
         self._add_pieces('black')
 
@@ -24,11 +23,17 @@ class Board:
         self.squares[initial.row][initial.col].piece = None
         self.squares[final.row][final.col].piece = piece
 
-        # Check for pawn promotion
+        # Check for pawn promotion and en passant
         if isinstance(piece, Pawn):
             # Since pawns can't move backwards we can just assume it doesn't happen
             if final.row == 0 or final.row == 7:
                 self.squares[final.row][final.col].piece = Queen(piece.color)
+            # Check for en passant
+            if abs(initial.row - final.row) == 2:
+                piece.en_passant = True
+            # Check if we did one instead
+            if any(move.en_passant for move in piece.moves) and piece.moves[piece.moves.index(move)].en_passant:
+                self.squares[initial.row][final.col].piece = None
 
         if any(move.castling for move in piece.moves) and piece.moves[piece.moves.index(move)].castling:
             # Set the direction
@@ -90,12 +95,6 @@ class Board:
                         return True
 
         return False
-
-
-    def _create(self):
-        for row in range(ROWS):
-            for col in range(COLS):
-                self.squares[row][col] = Square(row, col)
 
     def _add_pieces(self, color):
         # Set starting point depending on which side we are

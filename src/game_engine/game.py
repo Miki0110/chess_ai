@@ -1,8 +1,8 @@
 import pygame
 
-from constants import *
-from chess_board import Board, Square
-from mouse import Mouse
+from src.constants import *
+from src.game_engine.chess_board import Board, Square
+from src.game_engine.mouse import Mouse
 
 
 class Game:

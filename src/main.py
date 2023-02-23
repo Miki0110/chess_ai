@@ -5,7 +5,8 @@ from src.constants import *
 from src.game_engine.chess_board import Square
 from src.game_engine.game import Game
 from src.game_engine.move import Move
-
+from src.chess_ai.search_algorithm import *
+from src.chess_ai.board_representation import *
 
 # Idk why I made this into a class, could have just used global variables
 class Main:
@@ -35,6 +36,18 @@ class Main:
                 game.show_moves(screen)
                 game.show_pieces(screen)
                 mouse.render_blit(screen)
+            FEN = board.to_fen('white')
+            print(FEN)
+            chess_ai = ChessBoard(FEN)
+            chess_ai.print_board()
+            print(len(move_generator(board.squares, game.curr_player)))
+
+            #score, move = minimax(2, board, -10000, 10000, game.curr_player)
+            #p = board.squares[move.initial.row][move.initial.col].piece
+            #if board.valid_move(p, move):
+            #    board.move(p, move)
+                # Set the next players turn
+            #    game.next_turn()
 
             # Check for input
             for event in pygame.event.get():
@@ -46,7 +59,7 @@ class Main:
                     if board.squares[clicked_pos[1]][clicked_pos[0]].has_piece():
                         # Retrieve the piece type
                         piece = board.squares[clicked_pos[1]][clicked_pos[0]].piece
-                        if piece.color != game.next_player:
+                        if piece.color != game.curr_player:
                             break
                         # Calc moves
                         board.calc_moves(piece, clicked_pos[1], clicked_pos[0])
@@ -79,6 +92,10 @@ class Main:
                         game.show_pieces(screen)
                         # Set the next players turn
                         game.next_turn()
+
+                        # Calculate the score of the board
+                        score = evaluate_board(board.squares, game.curr_player)
+                        print(score)
 
                     mouse.undrag_piece()  # Let go of whatever we are holding
 

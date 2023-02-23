@@ -8,8 +8,11 @@ class Board:
     def __init__(self):
         self.squares = [[Square(row, col) for col in range(COLS)] for row in range(ROWS)]
         self.last_move = None
+        self.end = False
         self._add_pieces('white')
         self._add_pieces('black')
+        self.half_moves = 0
+        self.full_moves = 0
 
     # Function for calculating the valid moves
     def calc_moves(self, piece, row, col):
@@ -59,6 +62,11 @@ class Board:
             return
         # Check if it results in a mate
         if not self.in_check(piece, move):
+            # Increment moves
+            if isinstance(piece, Pawn):
+                self.half_moves += 1
+            self.full_moves += 1
+            # Return it was a success
             return True
 
     # Function for invalidating moves that kill you
@@ -121,6 +129,74 @@ class Board:
 
         # king
         self.squares[row_other][4] = Square(row_other, 4, King(color))
+
+    def to_fen(self, current_player):
+        fen = ""
+        # Set the backside arguments
+        turn = 'w' if current_player == 'white' else 'b'
+        sides = [0, 7]
+        # check for castling rights
+        castling_rights = ''
+        for side in sides:
+            l_piece = self.squares[side][0].piece
+            r_piece = self.squares[side][7].piece
+            # Check queen side
+            if self.squares[side][0] and isinstance(l_piece, Rook):
+                if not l_piece.moved and l_piece.color == 'white':
+                    castling_rights += 'Q'
+                elif l_piece.moved and l_piece == 'black':
+                    castling_rights += 'q'
+            # Check the king side
+            if self.squares[side][7] and isinstance(r_piece, Rook):
+                if not r_piece.moved and r_piece.color == 'white':
+                    castling_rights += 'K'
+                elif r_piece.moved and r_piece == 'black':
+                    castling_rights += 'k'
+        # In case no player is allowed to castle
+        if castling_rights == '':
+            castling_rights = '-'
+        # Possible En Passant target
+        en_passant_target = ''
+        for row in self.squares:
+            for square in row:
+                piece = square.piece
+                if isinstance(piece, Pawn):
+                    if piece.en_passant:
+                        en_passant_target += square.alphacol + str(square.row)
+        # In case no player has en passant targets
+        if en_passant_target == '':
+            en_passant_target = '-'
+
+        # Create the pieces position
+        for row in self.squares:
+            empty_squares = 0
+            for square in row:
+                if square.isempty():
+                    empty_squares += 1
+                else:
+                    piece = square.piece
+                    if empty_squares > 0:
+                        fen += str(empty_squares)
+                        empty_squares = 0
+                    piece_type = 'P' if isinstance(piece, Pawn) else \
+                        'N' if isinstance(piece, Knight) else \
+                            'B' if isinstance(piece, Bishop) else \
+                                'R' if isinstance(piece, Rook) else \
+                                    'Q' if isinstance(piece, Queen) else \
+                                        'K'
+                    if piece.color != 'white':
+                        piece_type = piece_type.lower()
+                    fen += piece_type
+            if empty_squares > 0:
+                fen += str(empty_squares)
+            fen += '/'
+        fen = fen[:-1]  # remove last '/'
+        fen += ' ' + turn + ' '
+        fen += castling_rights + ' '
+        fen += en_passant_target + ' '
+        fen += str(self.half_moves) + ' '
+        fen += str(self.full_moves)
+        return fen
 
 
 class Square:

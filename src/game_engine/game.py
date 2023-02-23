@@ -10,10 +10,11 @@ class Game:
     Class that is used to render anything happening on the chess board
     """
     def __init__(self):
-        self.next_player = 'white'
+        self.curr_player = 'white'
         self.hovered_sqr = None
         self.board = Board()
         self.mouse = Mouse()
+
 
     """Rendering methods"""
     # Render the background
@@ -112,7 +113,7 @@ class Game:
     # other methods
 
     def next_turn(self):
-        self.next_player = 'white' if self.next_player == 'black' else 'black'
+        self.curr_player = 'white' if self.curr_player == 'black' else 'black'
 
     def reset(self):
         self.__init__()

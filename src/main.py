@@ -36,11 +36,7 @@ class Main:
                 game.show_moves(screen)
                 game.show_pieces(screen)
                 mouse.render_blit(screen)
-            FEN = board.to_fen('white')
-            print(FEN)
-            chess_ai = ChessBoard(FEN)
-            chess_ai.print_board()
-            print(len(move_generator(board.squares, game.curr_player)))
+
 
             #score, move = minimax(2, board, -10000, 10000, game.curr_player)
             #p = board.squares[move.initial.row][move.initial.col].piece
@@ -87,6 +83,12 @@ class Main:
 
                     # Check if it's a valid move
                     if board.valid_move(mouse.piece, move):
+
+                        FEN = board.to_fen('white')
+                        print(FEN)
+                        chess_ai = ChessBoard(FEN)
+                        chess_ai.print_board()
+
                         # move the piece
                         board.move(mouse.piece, move)
                         game.show_pieces(screen)
@@ -96,8 +98,13 @@ class Main:
                         # Calculate the score of the board
                         score = evaluate_board(board.squares, game.curr_player)
                         print(score)
+                        print(chess_ai.get_valid_moves((mouse.initial_row, mouse.initial_col)))
+                        chess_ai.move_piece((mouse.initial_row, mouse.initial_col), (release_pos[1], release_pos[0]))
+                        chess_ai.print_board()
 
                     mouse.undrag_piece()  # Let go of whatever we are holding
+
+
 
                 # key press
                 elif event.type == pygame.KEYDOWN:

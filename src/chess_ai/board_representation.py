@@ -3,13 +3,13 @@ import numpy as np
 
 class ChessBoard:
     def __init__(self, FEN_string):
-        self.board = self.set_pieces(FEN_string)
-        self.en_passant = []
+        self.en_passant = None
         self.black_castle = [True, True]  # Queens-, Kings -side
         self.white_castle = [True, True]  # Queens-, Kings -side
         self.current_player = 1  # 1 = white, -1 = black
+        self.board = self.set_board(FEN_string)
 
-    def set_pieces(self, FEN):
+    def set_board(self, FEN):
         """
         Takes a FEN string and sets a numpy array up containing the board pieces from that
         """
@@ -17,6 +17,7 @@ class ChessBoard:
         # Split the string into each of the information types
         fen_split = FEN.split('/')
         pieces = fen_split[:-1] + [fen_split[-1].split(' ')[0]]
+        states = fen_split[-1].split(' ')[1:]
         # Create the board
         board = np.zeros((8, 8), dtype=int)
         # set the pieces
@@ -45,6 +46,27 @@ class ChessBoard:
                         board[row][col] = int(6*side)
                 col += 1
             col = 0
+        # Set the current player
+        self.current_player = 1 if states[0] == 'w' else -1
+
+        # Castling
+        if states[1] == '-':
+            self.white_castle = [False, False]
+            self.black_castle = [False, False]
+        if 'q' in states[1]:
+            self.black_castle[0] = True
+        if 'Q' in states[1]:
+            self.white_castle[0] = True
+        if 'k' in states[1]:
+            self.black_castle[1] = True
+        if 'K' in states[1]:
+            self.white_castle[1] = True
+
+        # En passant
+        if states[2] != '-':
+            ALPHACOLS = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
+            self.en_passant = np.array(ALPHACOLS[states[2][0]], int(states[2][1]))
+
         return board
 
     def print_board(self):
@@ -73,17 +95,68 @@ class ChessBoard:
             return True
 
     def move_piece(self, start_pos, end_pos):
-        # TODO: finish en passant and castling
-
-        x1, y1 = start_pos
-        x2, y2 = end_pos
+        start_pos = np.array(start_pos)
+        end_pos = np.array(end_pos)
+        x1, y1 = np.array(start_pos)
+        x2, y2 = np.array(end_pos)
         piece = self.board[x1][y1]
+
         # Check for pawns
         if abs(piece) == 1:
             # If we opened up for an en passant
             if abs(x1-x2) > 1:
-                self.en_passant.append(np.array(end_pos)+(-1*piece))  # This looks dumb but i needed the direction
+                self.en_passant = end_pos+(-1*piece)  # This looks dumb but i needed the direction
             # Check if we did one instead
+            if np.array_equal(end_pos, self.en_passant):
+                # Get the place of the pawn
+                enemy_pos = end_pos + piece
+                # Remove it from the board
+                self.board[enemy_pos[0]][enemy_pos[1]] = 0
+                # Reset the en_passant
+                self.en_passant = None
+        else:
+            # If we are not a pawn the possibility for en_passant closes
+            self.en_passant = None
+
+        # Check Rook moves
+        if piece == 2:
+            if y1 == 0:  # Queens side
+                self.white_castle[0] = False
+            elif y1 == 7:  # Kings side
+                self.white_castle[1] = False
+        elif piece == -2:
+            if y1 == 0:  # Queens side
+                self.black_castle[0] = False
+            elif y1 == 7:  # Kings side
+                self.black_castle[1] = False
+
+        # Check King moves
+        if piece == 5:
+            # Check for white castling moves
+            if self.white_castle[0] and y2 == 1:
+                # Move the Rook
+                self.board[7][0] = 0
+                self.board[7][2] = 2
+            elif self.white_castle[1] and y2 == 6:
+                # Move the Rook
+                self.board[7][7] = 0
+                self.board[7][5] = 2
+            # Set Castling to false
+            self.white_castle = [False, False]
+
+        # Check black king moves
+        if piece == -5:
+            # Check for black castling moves
+            if self.black_castle[0] and y2 == 1:
+                # Move the Rook
+                self.board[0][0] = 0
+                self.board[0][2] = -2
+            elif self.black_castle[1] and y2 == 6:
+                # Move the Rook
+                self.board[0][7] = 0
+                self.board[0][5] = -2
+            # Set Castling to false
+            self.black_castle = [False, False]
 
         self.board[x1][y1] = 0
         self.board[x2][y2] = piece
@@ -218,10 +291,10 @@ class ChessBoard:
             v_out.append(np.array((y+1*direction, x-1)))
 
         # Check for en passant
-        if len(self.en_passant) != 0:
-            en_passant_pos = np.array([[y+1*direction, x+1], y+1*direction, [x-1]])
+        if self.en_passant is not None:
+            en_passant_pos = np.array([[y+1*direction, x+1], [y+1*direction, x-1]])
             for current_pos in en_passant_pos:
-                if np.any(np.all(self.en_passant == current_pos, axis=1)):
+                if np.array_equal(current_pos, self.en_passant):
                     v_out.append(current_pos)
 
         return v_out

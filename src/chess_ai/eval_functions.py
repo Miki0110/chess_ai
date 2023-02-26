@@ -2,7 +2,7 @@ from src.constants import *
 from src.game_engine.pieces import *
 
 
-def evaluate_board(board, player_color):
+def evaluate_board(board, current_side):
     """
     Evaluates a given chess board and returns a score representing the
     advantage for the current player.

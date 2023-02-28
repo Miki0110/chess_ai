@@ -96,11 +96,9 @@ class Main:
                         game.next_turn()
 
                         # Calculate the score of the board
-                        score = evaluate_board(board.squares, game.curr_player)
-                        print(score)
-                        print(chess_ai.get_valid_moves((mouse.initial_row, mouse.initial_col)))
                         chess_ai.move_piece((mouse.initial_row, mouse.initial_col), (release_pos[1], release_pos[0]))
                         chess_ai.print_board()
+                        evaluate_board(chess_ai.board, 1)
 
                     mouse.undrag_piece()  # Let go of whatever we are holding
 

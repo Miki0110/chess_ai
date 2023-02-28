@@ -65,7 +65,7 @@ class ChessBoard:
         # En passant
         if states[2] != '-':
             ALPHACOLS = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
-            self.en_passant = np.array(ALPHACOLS[states[2][0]], int(states[2][1]))
+            self.en_passant = np.array([ALPHACOLS[states[2][0]], int(states[2][1])])
 
         return board
 

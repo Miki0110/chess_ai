@@ -178,10 +178,10 @@ class ChessBoard:
             bot_r = np.diagonal(bot_half, col + 1)
 
             # Check for the distance until a non-zero is found
-            top_l = [0 if len(top_l) == 0 else col if not np.any(top_l) else np.argmax(top_l[::-1] != 0) + 1]
-            top_r = [0 if len(top_r) == 0 else 7-col if not np.any(top_r) else np.argmax(top_r[::-1] != 0) + 1]
-            bot_l = [0 if len(bot_l) == 0 else col if not np.any(bot_l) else np.argmax(bot_l != 0) + 1]
-            bot_r = [0 if len(bot_r) == 0 else 7-col if not np.any(bot_r) else np.argmax(bot_r != 0) + 1]
+            top_l = [0 if len(top_l) == 0 else min(7-row, col) if not np.any(top_l) else np.argmax(top_l[::-1] != 0) + 1]
+            top_r = [0 if len(top_r) == 0 else min(row, 7-col) if not np.any(top_r) else np.argmax(top_r[::-1] != 0) + 1]
+            bot_l = [0 if len(bot_l) == 0 else min(7-row, col) if not np.any(bot_l) else np.argmax(bot_l != 0) + 1]
+            bot_r = [0 if len(bot_r) == 0 else min(7-row, 7-col) if not np.any(bot_r) else np.argmax(bot_r != 0) + 1]
             # Combine the results
             diag_coll = np.array((top_r, top_l, bot_r, bot_l), dtype=int)
         if move_straight:
@@ -242,17 +242,18 @@ class ChessBoard:
 
             # Iterate through each increment and delta, and update the current value accordingly
             for j, incr in enumerate(increments):
-                possible_pos = np.array(pos)
+                incremented_pos = np.array(pos)
                 delta = d_straight[j]
                 if len(delta) == 0 or delta[0] == 0:
                     continue
                 for _ in range(delta[0]):
-                    possible_pos = possible_pos + np.array(incr)
+                    incremented_pos = incremented_pos + np.array(incr)
+                    possible_pos = np.array([pos, incremented_pos])
                     # Append a copy of the current value to the results list
                     v_out.append(possible_pos)
                 else:
                     # If the last piece is an ally we remove it
-                    if self.has_ally(v_out[-1], side):
+                    if self.has_ally(v_out[-1][1], side):
                         v_out.pop(-1)
         if move_type[1]:  # Check Diagonal moves
             # set up a vector to store the moves in
@@ -263,17 +264,18 @@ class ChessBoard:
 
             # Iterate through each increment and delta, and update the current value accordingly
             for j, incr in enumerate(increments):
-                possible_pos = np.array(pos)
+                incremented_pos = np.array(pos)
                 delta = d_diag[j]
                 if len(delta) == 0 or delta[0] == 0:
                     continue
                 for _ in range(delta[0]):
-                    possible_pos = possible_pos + np.array(incr)
+                    incremented_pos = incremented_pos + np.array(incr)
+                    possible_pos = np.array([pos, incremented_pos])
                     # Append a copy of the current value to the results list
                     v_out.append(possible_pos)
                 else:
                     # If the last piece is an ally
-                    if self.has_ally(v_out[-1], side):
+                    if self.has_ally(v_out[-1][1], side):
                         v_out.pop(-1)
         return np.array(v_out)
 
@@ -282,22 +284,22 @@ class ChessBoard:
         y, x = pos
         # Move straight
         if y != 0 or y != 7 and self.board[y+1*direction][x] == 0:
-            v_out.append(np.array((y+1*direction, x)))
+            v_out.append(np.array([pos, (y+1*direction, x)]))
         if direction == -1 and y == 6 or direction == 1 and y == 1:
-            v_out.append(np.array((y+2*direction, x)))
+            v_out.append(np.array([pos, (y+2*direction, x)]))
 
         # Check for diagonal movements
         if x+1 < 8 and self.has_enemy((y+1*direction, x+1), -1*direction):
-            v_out.append(np.array((y+1*direction, x+1)))
+            v_out.append(np.array([pos, (y+1*direction, x+1)]))
         if x-1 >= 0 and self.has_enemy((y+1*direction, x-1), -1*direction):
-            v_out.append(np.array((y+1*direction, x-1)))
+            v_out.append(np.array([pos, (y+1*direction, x-1)]))
 
         # Check for en passant
         if self.en_passant is not None:
             en_passant_pos = np.array([[y+1*direction, x+1], [y+1*direction, x-1]])
             for current_pos in en_passant_pos:
                 if np.array_equal(current_pos, self.en_passant):
-                    v_out.append(current_pos)
+                    v_out.append(np.array([pos, current_pos]))
 
         return np.array(v_out)
 
@@ -325,7 +327,7 @@ class ChessBoard:
             ally_mask = self.board[row_indices, col_indices] >= 0
         possible_moves = possible_moves[ally_mask]
 
-        return possible_moves
+        return np.stack([original_pos[:len(possible_moves)], possible_moves], axis=1)
 
     def king_move_calc(self, pos, side):
         possible_moves = np.array([[-1, 0],  # up
@@ -396,4 +398,4 @@ class ChessBoard:
                 if np.all((self.board[row_indices, col_indices] == 0)):
                     # Add the move
                     possible_moves = np.append(possible_moves, [[0, 6]], axis=0)
-        return possible_moves
+        return np.stack([np.tile(np.array(pos), (len(possible_moves), 1)), possible_moves], axis=1)

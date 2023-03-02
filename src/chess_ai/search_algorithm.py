@@ -65,8 +65,13 @@ def move_generator(chess_board, current_color):
     indexes = np.transpose(np.where(piece_mask))
 
     # Go through the possible moves for each piece
-    pos_moves = []
+    pos_moves = np.empty((1,2,2), dtype=int)
     for index in indexes:
+        # Get the possible moves of the piece found at the given index
         moves = chess_board.get_valid_moves(index)
-        pos_moves.append([index, moves])
-    return pos_moves
+        # In case the piece can't move
+        if len(moves) == 0:
+            continue
+        pos_moves = np.concatenate((pos_moves, moves))
+    # Since the first contains empty positions i slice it away
+    return pos_moves[1:]

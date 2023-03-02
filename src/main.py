@@ -99,9 +99,10 @@ class Main:
                         chess_ai.move_piece((mouse.initial_row, mouse.initial_col), (release_pos[1], release_pos[0]))
                         chess_ai.print_board()
                         evaluate_board(chess_ai, 1)
+                        moves = chess_ai.get_valid_moves((release_pos[1], release_pos[0]))
 
-                        pieces, moves = move_generator(chess_ai, 1)
-                        print(moves)
+                        moves = move_generator(chess_ai, 1)
+                        print(len(moves))
 
                     mouse.undrag_piece()  # Let go of whatever we are holding
 

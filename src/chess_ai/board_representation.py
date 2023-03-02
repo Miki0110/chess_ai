@@ -207,6 +207,15 @@ class ChessBoard:
         if piece == 0:
             return None
 
+    def get_valid_npmoves(self, position):
+        # TODO: Check for in check moves
+        y = position[0]
+        x = position[1]
+        piece = self.board[y][x]  # 1 = P, 2 = R, 3 = N, 4 = B, 5 = K, 6 = Q
+
+        if piece == 0:
+            return None
+
         # Simplify the piece representation
         side = 1 if piece >= 1 else -1  # 1 for white, -1 for black
         piece = abs(piece)

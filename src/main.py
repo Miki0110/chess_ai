@@ -98,7 +98,9 @@ class Main:
                         # Calculate the score of the board
                         chess_ai.move_piece((mouse.initial_row, mouse.initial_col), (release_pos[1], release_pos[0]))
                         chess_ai.print_board()
-                        evaluate_board(chess_ai.board, 1)
+                        evaluate_board(chess_ai, 1)
+
+                        print(move_generator(chess_ai, 1))
 
                     mouse.undrag_piece()  # Let go of whatever we are holding
 

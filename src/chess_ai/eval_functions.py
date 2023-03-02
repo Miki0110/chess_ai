@@ -17,7 +17,7 @@ piece_values = {1: 1,  # Pawn
                }
 
 
-def evaluate_board(board, current_side):
+def evaluate_board(chess_board, current_side):
     """
     Evaluates a given chess board and returns a score representing the
     advantage for the current player.
@@ -27,22 +27,23 @@ def evaluate_board(board, current_side):
     score = 0
     # create boolean masks for each type of piece
     piece_masks = {
-        1: board == 1,  # w_pawn_mask
-        2: board == 2,  # w_rook_mask
-        3: board == 3,  # w_knight_mask
-        4: board == 4,  # w_bishop_mask
-        5: board == 5,  # w_king_mask
-        6: board == 6,  # w_queen_mask
-        -1: board == -1,  # b_pawn_mask
-        -2: board == -2,  # b_rook_mask
-        -3: board == -3,  # b_knight_mask
-        -4: board == -4,  # b_bishop_mask
-        -5: board == -5,  # b_king_mask
-        -6: board == -6,  # b_queen_mask
+        1: chess_board.board == 1,  # w_pawn_mask
+        2: chess_board.board == 2,  # w_rook_mask
+        3: chess_board.board == 3,  # w_knight_mask
+        4: chess_board.board == 4,  # w_bishop_mask
+        5: chess_board.board == 5,  # w_king_mask
+        6: chess_board.board == 6,  # w_queen_mask
+        -1: chess_board.board == -1,  # b_pawn_mask
+        -2: chess_board.board == -2,  # b_rook_mask
+        -3: chess_board.board == -3,  # b_knight_mask
+        -4: chess_board.board == -4,  # b_bishop_mask
+        -5: chess_board.board == -5,  # b_king_mask
+        -6: chess_board.board == -6,  # b_queen_mask
     }
 
     # Calculate the material balance
     material_balance = sum(piece_values[piece] * piece_masks[piece].sum() for piece in piece_values)
+    score += material_balance
 
     # Evaluate pawn structure
     """
@@ -60,28 +61,32 @@ def evaluate_board(board, current_side):
                     score -= 0.1
     """
     # Evaluate king safety
-    white_king_pos = np.where(piece_masks[5] is True)
-    black_king_pos = np.where(piece_masks[-5] is True)
+    white_king_pos = np.where(piece_masks[5] == True)
+    black_king_pos = np.where(piece_masks[-5] == True)
 
     # For the players king position
-    for i in range(white_king_pos[0]-3, white_king_pos[0]+3):
+    for i in range(white_king_pos[0][0]-3, white_king_pos[0][0]+3):
         if ROWS <= i >= 0: # Make sure we are still on the board
             continue
-        for j in range(white_king_pos[1]-3, white_king_pos[1]+3):
+        for j in range(white_king_pos[1][0]-3, white_king_pos[1][0]+3):  # Last zero is because numpy is being annoying
             if COLS <= j >= 0:
                 continue
-            piece = board[i][j]
-            if piece.has_team_piece(player_color):
-                score += 0.2
-    # For the Enemies king position
-    for i in range(enemy_king_pos[0] - 3, enemy_king_pos[0] + 3):
-        if ROWS <= i >= 0:  # Make sure we are still on the board
+            if chess_board.has_ally((i, j), 1):
+                if current_side == 1:
+                    score += 0.2
+                else:
+                    score -= 0.2
+    # Black side
+    for i in range(black_king_pos[0][0]-3, black_king_pos[0][0]+3):
+        if ROWS <= i >= 0: # Make sure we are still on the board
             continue
-        for j in range(enemy_king_pos[1] - 3, enemy_king_pos[1] + 3):
+        for j in range(black_king_pos[1][0]-3, black_king_pos[1][0]+3):
             if COLS <= j >= 0:
                 continue
-            piece = board[i][j]
-            if not piece.has_team_piece(player_color):
-                score += 0.2
+            if chess_board.has_ally((i, j), 1):
+                if current_side == -1:
+                    score += 0.2
+                else:
+                    score -= 0.2
 
     return score

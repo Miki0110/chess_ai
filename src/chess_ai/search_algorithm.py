@@ -54,17 +54,17 @@ def minimax(depth, board, alpha, beta, player_color, maximizing_player=True):
         return min_score, None
 
 
-def move_generator(board, first_color):
-    # set the color
-    current_color = first_color
+def move_generator(chess_board, current_color):
+    # Pieces
+    if current_color == 1:
+        piece_mask = chess_board.board > 0
+    else:
+        piece_mask = chess_board.board < 0
 
-    pos_moves = []
-    # Go through the board and check possible moves
-    for row in range(ROWS):
-        for col in range(COLS):
-            square = board[row][col]
-            if square.has_team_piece(current_color):
-                square.piece.calc_moves(board, row, col)
-                pos_moves.extend(square.piece.moves)
+    # Get all the indexes indicating players
+    indexes = np.transpose(np.where(piece_mask))
+
+    # Go through the possible moves for each piece
+    pos_moves = np.apply_along_axis(chess_board.get_valid_npmoves, 1, indexes)
 
     return pos_moves

@@ -100,7 +100,8 @@ class Main:
                         chess_ai.print_board()
                         evaluate_board(chess_ai, 1)
 
-                        print(move_generator(chess_ai, 1))
+                        pieces, moves = move_generator(chess_ai, 1)
+                        print(moves)
 
                     mouse.undrag_piece()  # Let go of whatever we are holding
 

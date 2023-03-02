@@ -65,6 +65,8 @@ def move_generator(chess_board, current_color):
     indexes = np.transpose(np.where(piece_mask))
 
     # Go through the possible moves for each piece
-    pos_moves = np.apply_along_axis(chess_board.get_valid_npmoves, 1, indexes)
-
+    pos_moves = []
+    for index in indexes:
+        moves = chess_board.get_valid_moves(index)
+        pos_moves.append([index, moves])
     return pos_moves

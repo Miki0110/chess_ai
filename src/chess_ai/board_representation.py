@@ -201,20 +201,12 @@ class ChessBoard:
 
     def get_valid_moves(self, position):
         # TODO: Check for in check moves
-        y, x = position
-        piece = self.board[y][x]  # 1 = P, 2 = R, 3 = N, 4 = B, 5 = K, 6 = Q
-
-        if piece == 0:
-            return None
-
-    def get_valid_npmoves(self, position):
-        # TODO: Check for in check moves
         y = position[0]
         x = position[1]
         piece = self.board[y][x]  # 1 = P, 2 = R, 3 = N, 4 = B, 5 = K, 6 = Q
 
         if piece == 0:
-            return None
+            return []
 
         # Simplify the piece representation
         side = 1 if piece >= 1 else -1  # 1 for white, -1 for black
@@ -232,6 +224,7 @@ class ChessBoard:
             valid_moves = self.king_move_calc(position, side)
         else:  # The rest
             valid_moves = self.general_move_calc(position, move_type, side)
+
         return valid_moves
 
     def general_move_calc(self, pos, move_type, side):
@@ -282,7 +275,7 @@ class ChessBoard:
                     # If the last piece is an ally
                     if self.has_ally(v_out[-1], side):
                         v_out.pop(-1)
-        return v_out
+        return np.array(v_out)
 
     def pawn_move_calc(self, pos, direction):
         v_out = []
@@ -306,7 +299,7 @@ class ChessBoard:
                 if np.array_equal(current_pos, self.en_passant):
                     v_out.append(current_pos)
 
-        return v_out
+        return np.array(v_out)
 
     def knight_move_calc(self, pos, side):
         # Since knights can only move in the L shape we check all those positions

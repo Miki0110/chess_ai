@@ -7,21 +7,19 @@ import copy
 def minimax(depth, board, alpha, beta, player_color, maximizing_player=True):
     # When we've found the best solution
     if depth == 0:
-        return evaluate_board(board.squares, player_color), None
+        return evaluate_board(board, player_color), None
 
     best_move = []
 
     if maximizing_player:
-        possible_moves = move_generator(board.squares, player_color)
+        possible_moves = move_generator(board, player_color)
         max_score = -100000
         if len(possible_moves) == 0:
             return max_score
         for move in possible_moves:
             temp_board = copy.deepcopy(board)
-            # First we find the piece related to the move
-            piece = temp_board.squares[move.initial.row][move.initial.col].piece
             # Move the piece
-            temp_board.move(piece, move)
+            temp_board.move_piece(move[0], move[1])
             # Repeat the process
             score, new_move = minimax(depth - 1, temp_board, alpha, beta, player_color, False)
             if max_score <= score:
@@ -33,19 +31,15 @@ def minimax(depth, board, alpha, beta, player_color, maximizing_player=True):
         return max_score, best_move
     else:
         min_score = 100000
-        enemy_color = 'white' if player_color == 'black' else 'black'
-        possible_moves = move_generator(board.squares, enemy_color)
+        possible_moves = move_generator(board, -1*player_color)
         if len(possible_moves) == 0:
             return min_score
         for move in possible_moves:
             temp_board = copy.deepcopy(board)
-            # First we find the piece related to the move
-            piece = temp_board.squares[move.initial.row][move.initial.col].piece
             # Move the piece
-            temp_board.move(piece, move)
+            temp_board.move_piece(move[0], move[1])
             # Repeat the process
-            score, _ = minimax(depth - 1, board, alpha, beta, player_color, True)
-
+            score, _ = minimax(depth - 1, board, alpha, beta, player_color, maximizing_player=True)
             if min_score >= score:
                 min_score = score
             beta = min(beta, min_score)
@@ -65,7 +59,7 @@ def move_generator(chess_board, current_color):
     indexes = np.transpose(np.where(piece_mask))
 
     # Go through the possible moves for each piece
-    pos_moves = np.empty((1,2,2), dtype=int)
+    pos_moves = np.empty((1, 2, 2), dtype=int)
     for index in indexes:
         # Get the possible moves of the piece found at the given index
         moves = chess_board.get_valid_moves(index)

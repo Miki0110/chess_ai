@@ -37,13 +37,24 @@ class Main:
                 game.show_pieces(screen)
                 mouse.render_blit(screen)
 
+            FEN = board.to_fen('white')
+            print(FEN)
+            chess_ai = ChessBoard(FEN)
+            chess_ai.print_board()
+            player = 1 if game.curr_player == 'white' else -1
+            score, move = minimax(3, chess_ai, -10000, 10000, player)
+            print(move)
+            p = board.squares[move[0][0]][move[0][1]].piece
+            board.calc_moves(p, move[0][0], move[0][1])
+            # Create the move
+            initial = Square(move[0][0], move[0][1])
+            final = Square(move[1][0], move[1][1])
+            move_class = Move(initial, final)
 
-            #score, move = minimax(2, board, -10000, 10000, game.curr_player)
-            #p = board.squares[move.initial.row][move.initial.col].piece
-            #if board.valid_move(p, move):
-            #    board.move(p, move)
+            if board.valid_move(p, move_class):
+                board.move(p, move_class)
                 # Set the next players turn
-            #    game.next_turn()
+                game.next_turn()
 
             # Check for input
             for event in pygame.event.get():

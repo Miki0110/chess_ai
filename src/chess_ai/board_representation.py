@@ -105,11 +105,11 @@ class ChessBoard:
         if abs(piece) == 1:
             # If we opened up for an en passant
             if abs(x1-x2) > 1:
-                self.en_passant = end_pos+(-1*piece)  # This looks dumb but i needed the direction
+                self.en_passant = end_pos+piece  # This looks dumb but i needed the direction
             # Check if we did one instead
             if np.array_equal(end_pos, self.en_passant):
                 # Get the place of the pawn
-                enemy_pos = end_pos + piece
+                enemy_pos = end_pos + (-1*piece)
                 # Remove it from the board
                 self.board[enemy_pos[0]][enemy_pos[1]] = 0
                 # Reset the en_passant

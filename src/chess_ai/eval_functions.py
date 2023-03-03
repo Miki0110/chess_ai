@@ -77,6 +77,8 @@ def evaluate_board(chess_board, current_side):
                 else:
                     score -= 0.2
     # Black side
+    if len(black_king_pos[0]) == 0:
+        print('we here')
     for i in range(black_king_pos[0][0]-3, black_king_pos[0][0]+3):
         if ROWS <= i >= 0: # Make sure we are still on the board
             continue

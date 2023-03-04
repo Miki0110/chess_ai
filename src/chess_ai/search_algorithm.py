@@ -1,7 +1,4 @@
 from src.chess_ai.eval_functions import *
-from src.constants import *
-
-import copy
 
 
 def minimax(depth, board, alpha, beta, maximizing_player=True):
@@ -13,6 +10,8 @@ def minimax(depth, board, alpha, beta, maximizing_player=True):
     if maximizing_player:
         possible_moves = move_generator(board, 1)
         max_score = -float('inf')
+        if len(possible_moves) == 0:
+            return -10000, None
         for move in possible_moves:
             #temp_board = copy.deepcopy(board)
             # Move the piece
@@ -35,6 +34,8 @@ def minimax(depth, board, alpha, beta, maximizing_player=True):
     else:
         min_score = float('inf')
         possible_moves = move_generator(board, -1)
+        if len(possible_moves) == 0:
+            return 10000, None
         for move in possible_moves:
             #temp_board = copy.deepcopy(board)
             # Move the piece

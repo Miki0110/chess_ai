@@ -100,8 +100,10 @@ class ChessBoard:
             return True
 
     def move_piece(self, start_pos, end_pos):
-        #start_pos = np.array(start_pos)
-        #end_pos = np.array(end_pos)
+        """
+        Moves a piece at start pos to end pos.
+        While changing values for en passant and castling
+        """
 
         # Save the move
         self.board_state_stack.append(self.board.copy())
@@ -176,15 +178,22 @@ class ChessBoard:
         self.board[x2][y2] = piece
 
     def undo_move(self):
-        # Undo the move by setting things back
+        """
+        Undo the last move
+        """
         self.board = self.board_state_stack.pop()
         self.black_castle = self.black_castle_stack.pop()
         self.white_castle = self.white_castle_stack.pop()
 
-        #self.white_turns
-
     # Function for finding the closest pieces given a direction
     def check_direction(self, pos, move_diagonal, move_straight):
+        """
+        Function that checks distance to the nearest piece or wall
+        :param pos: [row, col]
+        :param move_diagonal: Bool, True if the piece moves diagonally
+        :param move_straight: Bool, True if the piece moves Straight
+        :return: [Diagonal moves][Straight moves]
+        """
         row, col = pos
         bot_half = self.board[row+1:]
         top_half = self.board[:row]
@@ -221,7 +230,62 @@ class ChessBoard:
         moves = [diag_coll, straight_coll]
         return moves
 
+    def check_in_mate(self, start_pos, end_pos, side):
+        # Move the board
+        self.move_piece(start_pos, end_pos)
+
+        # Find the kings position
+        king_pos = np.where(self.board == side*5)
+        # Find enemy positions
+        if side == 1:
+            enemy_pos = np.transpose(np.where(self.board < 0))
+        else:
+            enemy_pos = np.transpose(np.where(self.board > 0))
+
+        # Check if this results in the king being attacked
+        for enemy in enemy_pos:
+            if self.can_attack(enemy, king_pos, -1*side):
+                self.undo_move()
+                return True
+        self.undo_move()
+        return False
+
+    def can_attack(self, piece_pos, target_pos, side):
+        """
+        Check if a piece can attack a certain position
+        :param piece_pos: attacking piece [row][col]
+        :param target_pos: enemy piece [row][col]
+        :param side: attacking piece side
+        :return: Bool, True if it can attack, False if not
+        """
+
+        # Retrieve the piece in question
+        piece = abs(self.board[piece_pos[0]][piece_pos[1]])
+
+        # To speed up the algorithm I might introduce a simpler move calculator for this
+        if piece == 1:  # pawn
+            valid_moves = self.pawn_move_calc(piece_pos, int(-1*side))
+        elif piece == 3:  # knight
+            valid_moves = self.knight_move_calc(piece_pos, side)
+        elif piece == 5:  # king
+            valid_moves = self.king_move_calc(piece_pos, side)
+        else:  # The rest
+            move_type = (True, False) if piece == 2 else (False, True) if piece == 4 else (True, True)
+            valid_moves = self.general_move_calc(piece_pos, move_type, side)
+
+        for move in valid_moves:
+            if target_pos[0] == move[1][0] and target_pos[1] == move[1][1]:
+                return True
+            else:
+                return False
+
+
     def get_valid_moves(self, position):
+        """
+        Function that returns valid moves for a piece
+        :param position: [row][col]
+        :return: list of valid moves, for given piece
+        """
         # TODO: Check for in check moves
         y = position[0]
         x = position[1]
@@ -234,10 +298,6 @@ class ChessBoard:
         side = 1 if piece >= 1 else -1  # 1 for white, -1 for black
         piece = abs(piece)
 
-        # Set the movement type depending on the piece
-        # Move type = Diagonal, Straight
-        move_type = (True, False) if piece == 2 else (False, True) if piece == 4 else (True, True)
-
         if piece == 1:  # pawn
             valid_moves = self.pawn_move_calc(position, int(-1*side))
         elif piece == 3:  # knight
@@ -245,11 +305,28 @@ class ChessBoard:
         elif piece == 5:  # king
             valid_moves = self.king_move_calc(position, side)
         else:  # The rest
+            # Set the movement type depending on the piece
+            move_type = (True, False) if piece == 2 else (False, True) if piece == 4 else (True, True) # (Diagonal, Straight)
             valid_moves = self.general_move_calc(position, move_type, side)
+
+        # Check if any of the moves result in a checkmate
+        i = 0
+        while i < len(valid_moves):
+            if self.check_in_mate(valid_moves[i][0], valid_moves[i][1], side):
+                # Remove the move if it's illegal
+                valid_moves.pop(i)
+            i += 1
 
         return valid_moves
 
     def general_move_calc(self, pos, move_type, side):
+        """
+        Function that retrieves possible moves for the rook, bishop or queen
+        :param pos: [row][col]
+        :param move_type: [Bool: Straight move][Bool: Diagonal move]
+        :param side: 1 for white, -1 for black
+        :return: list of possible moves
+        """
         # Go through the possible moves, defined by the piece type
         d_diag, d_straight = self.check_direction(pos, move_type[1], move_type[0])
         v_out = []
@@ -301,6 +378,12 @@ class ChessBoard:
         return v_out
 
     def pawn_move_calc(self, pos, direction):
+        """
+        Function that retrieves possible moves for the pawns
+        :param pos: [row][col]
+        :param direction: -1 for white, 1 for black
+        :return: list of possible moves
+        """
         v_out = []
         y, x = pos
         # Move straight
@@ -329,6 +412,12 @@ class ChessBoard:
         return v_out
 
     def knight_move_calc(self, pos, side):
+        """
+        Function that retrieves possible moves for the Knight
+        :param pos: [row][col]
+        :param side: 1 for white, -1 for black
+        :return: list of possible moves
+        """
         # Since knights can only move in the L shape we check all those positions
         possible_moves = np.array([[-2, 1], [-1, 2], [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1]])
         original_pos = np.tile(np.array(pos), (len(possible_moves), 1))
@@ -352,9 +441,16 @@ class ChessBoard:
             ally_mask = self.board[row_indices, col_indices] >= 0
         possible_moves = possible_moves[ally_mask]
 
-        return np.stack([original_pos[:len(possible_moves)], possible_moves], axis=1)
+        return list(np.stack([original_pos[:len(possible_moves)], possible_moves], axis=1))
 
     def king_move_calc(self, pos, side):
+
+        """
+        Function that retrieves possible moves for the king
+        :param pos: [row][col]
+        :param side: 1 for white, -1 for black
+        :return: list of possible moves
+        """
         possible_moves = np.array([[-1, 0],  # up
                                    [0, 1],  # right
                                    [0, -1],  # left
@@ -423,4 +519,4 @@ class ChessBoard:
                 if np.all((self.board[row_indices, col_indices] == 0)):
                     # Add the move
                     possible_moves = np.append(possible_moves, [[0, 6]], axis=0)
-        return np.stack([np.tile(np.array(pos), (len(possible_moves), 1)), possible_moves], axis=1)
+        return list(np.stack([np.tile(np.array(pos), (len(possible_moves), 1)), possible_moves], axis=1))

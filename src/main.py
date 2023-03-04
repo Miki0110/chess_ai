@@ -46,7 +46,7 @@ class Main:
                 chess_ai = ChessBoard(FEN)
                 #chess_ai.print_board()
                 player = True if game.curr_player == 'white' else False
-                score, move = minimax(4, chess_ai, -float('inf'), float('inf'), player)
+                score, move = minimax(3, chess_ai, -float('inf'), float('inf'), player)
                 print('current move: ', move)
                 p = board.squares[move[0][0]][move[0][1]].piece
                 print('piece at place: ', p.name)

@@ -167,4 +167,16 @@ mg_value_tables = {1: mg_pawn_table,
                    -5: -1*np.flipud(mg_king_table),
                    -6: -1*np.flipud(mg_queen_table),
                    }
-eg_value_tables = np.array([eg_pawn_table, eg_rook_table, eg_knight_table, eg_bishop_table, eg_king_table, eg_queen_table])/100
+eg_value_tables = {1: eg_pawn_table,
+                   2: eg_rook_table,
+                   3: eg_knight_table,
+                   4: eg_bishop_table,
+                   5: eg_king_table,
+                   6: eg_queen_table,
+                   -1: -1*np.flipud(eg_pawn_table),  # The black side is flipped and has a negative value
+                   -2: -1*np.flipud(eg_rook_table),
+                   -3: -1*np.flipud(eg_knight_table),
+                   -4: -1*np.flipud(eg_bishop_table),
+                   -5: -1*np.flipud(eg_king_table),
+                   -6: -1*np.flipud(eg_queen_table),
+                   }

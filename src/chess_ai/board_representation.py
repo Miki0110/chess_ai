@@ -9,10 +9,6 @@ class ChessBoard:
         self.current_player = 1  # 1 = white, -1 = black
         self.board = self.set_board(FEN_string)
 
-        # Debug stats
-        self.white_turns = 0
-        self.black_turns = 0
-
         # Stack for minimax
         self.board_state_stack = []
         self.black_castle_stack = []  # Queens-, Kings -side
@@ -104,17 +100,17 @@ class ChessBoard:
             return True
 
     def move_piece(self, start_pos, end_pos):
-        start_pos = np.array(start_pos)
-        end_pos = np.array(end_pos)
+        #start_pos = np.array(start_pos)
+        #end_pos = np.array(end_pos)
 
         # Save the move
-        self.board_state_stack.append(self.board)
+        self.board_state_stack.append(self.board.copy())
         self.black_castle_stack.append(self.black_castle)
         self.white_castle_stack.append(self.white_castle)
 
         # Retrieve the piece and start moving it
-        x1, y1 = np.array(start_pos)
-        x2, y2 = np.array(end_pos)
+        x1, y1 = start_pos
+        x2, y2 = end_pos
         piece = self.board[x1][y1]
 
         # Check for pawns
@@ -123,14 +119,15 @@ class ChessBoard:
             if abs(x1-x2) > 1:
                 self.en_passant = end_pos+piece  # This looks dumb but i needed the direction
             # Check if we did one instead
-            if (piece == 1 and x2 == 2) or (piece == -1 and x2 == 5)\
-                    and np.array_equal(end_pos, self.en_passant):
-                # Get the place of the pawn
-                enemy_pos = end_pos + (-1*piece)
-                # Remove it from the board
-                self.board[enemy_pos[0]][enemy_pos[1]] = 0
-                # Reset the en_passant
-                self.en_passant = None
+            if self.en_passant is not None:
+                if (piece == 1 and x2 == 2) or (piece == -1 and x2 == 5)\
+                        and end_pos[0] == self.en_passant[0] and end_pos[1] == self.en_passant[1]:
+                    # Get the place of the pawn
+                    enemy_pos = end_pos + (-1*piece)
+                    # Remove it from the board
+                    self.board[enemy_pos[0]][enemy_pos[1]] = 0
+                    # Reset the en_passant
+                    self.en_passant = None
         else:
             # If we are not a pawn the possibility for en_passant closes
             self.en_passant = None
@@ -208,7 +205,7 @@ class ChessBoard:
             bot_l = [0 if len(bot_l) == 0 else min(7-row, col) if not np.any(bot_l) else np.argmax(bot_l != 0) + 1]
             bot_r = [0 if len(bot_r) == 0 else min(7-row, 7-col) if not np.any(bot_r) else np.argmax(bot_r != 0) + 1]
             # Combine the results
-            diag_coll = np.array((top_r, top_l, bot_r, bot_l), dtype=int)
+            diag_coll = [top_r, top_l, bot_r, bot_l]
         if move_straight:
             # Define the vertical board
             right_half = self.board[:, col+1:]
@@ -220,7 +217,7 @@ class ChessBoard:
             left = [0 if len(left_half[0]) == 0 else col if not np.any(left_half[row]) else np.argmax(left_half[row][::-1] != 0) + 1]
             bot = [0 if len(bot_half) == 0 else 7-row if not np.any(bot_half[:, col]) else np.argmax(bot_half[:, col] != 0) + 1]
             # Combine the results
-            straight_coll = np.array((top, right, left, bot), dtype=int)
+            straight_coll = [top, right, left, bot]
         moves = [diag_coll, straight_coll]
         return moves
 
@@ -273,7 +270,7 @@ class ChessBoard:
                     continue
                 for _ in range(delta[0]):
                     incremented_pos = incremented_pos + np.array(incr)
-                    possible_pos = np.array([pos, incremented_pos])
+                    possible_pos = [pos, incremented_pos]
                     # Append a copy of the current value to the results list
                     v_out.append(possible_pos)
                 # If the last piece is an ally we remove it
@@ -294,14 +291,14 @@ class ChessBoard:
                     continue
                 for _ in range(delta[0]):
                     incremented_pos = incremented_pos + np.array(incr)
-                    possible_pos = np.array([pos, incremented_pos])
+                    possible_pos = [pos, incremented_pos]
                     # Append a copy of the current value to the results list
                     v_out.append(possible_pos)
 
                 # If the last piece is an ally
                 if self.has_ally(v_out[-1][1], side):
                     v_out.pop(-1)
-        return np.array(v_out)
+        return v_out
 
     def pawn_move_calc(self, pos, direction):
         v_out = []
@@ -310,26 +307,26 @@ class ChessBoard:
         # Check for blocking piece
         if y != 0 and y != 7:
             if self.board[y+1*direction][x] == 0:
-                v_out.append(np.array([pos, (y+1*direction, x)]))
+                v_out.append([pos, (y+1*direction, x)])
                 if ((direction == -1 and y == 6) and self.board[y+2*direction][x] == 0)\
                         or ((direction == 1 and y == 1) and self.board[y+2*direction][x] == 0):
-                    v_out.append(np.array([pos, (y+2*direction, x)]))
+                    v_out.append([pos, (y+2*direction, x)])
 
             # Check for diagonal movements
             if x+1 < 8 and self.has_enemy((y+1*direction, x+1), -1*direction):
-                v_out.append(np.array([pos, (y+1*direction, x+1)]))
+                v_out.append([pos, (y+1*direction, x+1)])
             if x-1 >= 0 and self.has_enemy((y+1*direction, x-1), -1*direction):
-                v_out.append(np.array([pos, (y+1*direction, x-1)]))
+                v_out.append([pos, (y+1*direction, x-1)])
 
         # Check for en passant
         start_pos = 1 if direction == 1 else 6
         if self.en_passant is not None and y != start_pos:
             en_passant_pos = np.array([[y+1*direction, x+1], [y+1*direction, x-1]])
             for current_pos in en_passant_pos:
-                if np.array_equal(current_pos, self.en_passant):
+                if current_pos[0] == self.en_passant[0] and current_pos[1] == self.en_passant[1]:
                     v_out.append(np.array([pos, current_pos]))
 
-        return np.array(v_out)
+        return v_out
 
     def knight_move_calc(self, pos, side):
         # Since knights can only move in the L shape we check all those positions

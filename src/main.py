@@ -42,11 +42,11 @@ class Main:
                 mouse.render_blit(screen)
 
             if AI_PLAY and game.curr_player == 'white':
-                FEN = board.to_fen('white')
+                FEN = board.to_fen(game.curr_player)
                 chess_ai = ChessBoard(FEN)
                 #chess_ai.print_board()
-                player = 1 if game.curr_player == 'white' else -1
-                score, move = minimax(3, chess_ai, -float('inf'), float('inf'), player)
+                player = True if game.curr_player == 'white' else False
+                score, move = minimax(4, chess_ai, -float('inf'), float('inf'), player)
                 print('current move: ', move)
                 p = board.squares[move[0][0]][move[0][1]].piece
                 print('piece at place: ', p.name)

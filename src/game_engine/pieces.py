@@ -87,6 +87,7 @@ class Piece:
         value_sign = 1 if player_color == self.color else -1
         return self.value * value_sign
 
+
 class Pawn(Piece):
     def __init__(self, color):
         # Since pawns can only move in one direction
@@ -139,8 +140,8 @@ class Pawn(Piece):
                     move = self._create_move(row, col, row+self.dir, col+direction)
                     move.en_passant = True
                     self.add_move(move)
-            except ValueError:
-                raise 'failed en passant'
+            except Exception as e:
+                print('failed en passant')
 
 
 

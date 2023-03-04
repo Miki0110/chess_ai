@@ -25,10 +25,16 @@ def evaluate_board(chess_board):
         -5: chess_board.board == -5,  # b_king_mask
         -6: chess_board.board == -6,  # b_queen_mask
     }
+    # Check game stage
+    early_stage = True if np.sum(chess_board.board != 0) > 16 else False
 
     # Calculate the material balance
-    material_balance = sum(piece_values[piece] * piece_masks[piece].sum() +
-                           np.sum(piece_masks[piece]*mg_value_tables[piece]) for piece in piece_values)
+    if early_stage:
+        material_balance = sum(piece_values[piece] * piece_masks[piece].sum() +
+                               np.sum(piece_masks[piece]*mg_value_tables[piece]) for piece in piece_values)
+    else:
+        material_balance = sum(piece_values[piece] * piece_masks[piece].sum() +
+                               np.sum(piece_masks[piece] * eg_value_tables[piece]) for piece in piece_values)
     score += material_balance
 
 
@@ -56,20 +62,20 @@ def evaluate_board(chess_board):
         return score
 
     # For the white king position
-    for i in range(white_king_pos[0][0]-3, white_king_pos[0][0]+3):
+    for i in range(white_king_pos[0][0]-2, white_king_pos[0][0]+2):
         if ROWS <= i >= 0:  # Make sure we are still on the board
             continue
-        for j in range(white_king_pos[1][0]-3, white_king_pos[1][0]+3):  # Last zero is because numpy is being annoying
+        for j in range(white_king_pos[1][0]-2, white_king_pos[1][0]+2):  # Last zero is because numpy is being annoying
             if COLS <= j >= 0:
                 continue
             if chess_board.has_ally((i, j), 1):
                 # Save the score
                 score += 0.2
     # Black side
-    for i in range(black_king_pos[0][0]-3, black_king_pos[0][0]+3):
+    for i in range(black_king_pos[0][0]-2, black_king_pos[0][0]+2):
         if ROWS <= i >= 0:  # Make sure we are still on the board
             continue
-        for j in range(black_king_pos[1][0]-3, black_king_pos[1][0]+3):
+        for j in range(black_king_pos[1][0]-2, black_king_pos[1][0]+2):
             if COLS <= j >= 0:
                 continue
             if chess_board.has_ally((i, j), -1):

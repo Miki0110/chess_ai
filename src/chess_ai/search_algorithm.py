@@ -4,23 +4,24 @@ from src.constants import *
 import copy
 
 
-def minimax(depth, board, alpha, beta, player_color, maximizing_player=True):
+def minimax(depth, board, alpha, beta, maximizing_player=True):
     # When we've found the best solution
     if depth == 0:
         return evaluate_board(board), None
 
     best_move = []
     if maximizing_player:
-        possible_moves = move_generator(board, player_color)
+        possible_moves = move_generator(board, 1)
         max_score = -float('inf')
         for move in possible_moves:
-            temp_board = copy.deepcopy(board)
+            #temp_board = copy.deepcopy(board)
             # Move the piece
-            temp_board.move_piece(move[0], move[1])
+            board.move_piece(move[0], move[1])
             # Repeat the process
-            score, new_move = minimax(depth - 1, temp_board, alpha, beta, player_color, False)
+            score, new_move = minimax(depth - 1, board, alpha, beta, False)
             # Undo the move we just did
-            #board.undo_move()
+            board.undo_move()
+
             # Set the scores
             if max_score < score:
                 max_score = score
@@ -33,23 +34,24 @@ def minimax(depth, board, alpha, beta, player_color, maximizing_player=True):
         return max_score, best_move
     else:
         min_score = float('inf')
-        possible_moves = move_generator(board, -1*player_color)
+        possible_moves = move_generator(board, -1)
         for move in possible_moves:
-            temp_board = copy.deepcopy(board)
+            #temp_board = copy.deepcopy(board)
             # Move the piece
-            temp_board.move_piece(move[0], move[1])
+            board.move_piece(move[0], move[1])
             # Repeat the process
-            score, _ = minimax(depth - 1, temp_board, alpha, beta, player_color, True)
+            score, new_move = minimax(depth - 1, board, alpha, beta, True)
             # Undo the move we just did
-            #board.undo_move()
+            board.undo_move()
             # Set the scores
             if min_score >= score:
                 min_score = score
+                best_move = move
                 beta = min(beta, min_score)
                 if beta <= alpha:
                     break
                 #print('beta: ', beta)
-        return min_score, None
+        return min_score, best_move
 
 
 def move_generator(chess_board, current_color):

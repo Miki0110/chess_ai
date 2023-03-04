@@ -1,28 +1,13 @@
 from src.constants import *
 from src.chess_ai.board_representation import *
-
-# 1 = P, 2 = R, 3 = N, 4 = B, 5 = K, 6 = Q
-piece_values = {1: 1,  # Pawn
-               2: 5,  # Rook
-               3: 3,  # Knight
-               4: 3,  # Bishop
-               5: 1000000,  # King (arbitrary high value to avoid being captured)
-               6: 9,  # Queen
-               -1: -1,  # Pawn
-               -2: -5,  # Rook
-               -3: -3,  # Knight
-               -4: -3,  # Bishop
-               -5: -1000000,  # King (arbitrary high value to avoid being captured)
-               -6: -9,  # Queen
-               }
+from src.chess_ai.evaluation_values import *
 
 
-def evaluate_board(chess_board, current_side):
+def evaluate_board(chess_board):
     """
     Evaluates a given chess board and returns a score representing the
-    advantage for the current player.
+    advantage for the white player.
     """
-
     # Initialize the score
     score = 0
     # create boolean masks for each type of piece
@@ -42,8 +27,10 @@ def evaluate_board(chess_board, current_side):
     }
 
     # Calculate the material balance
-    material_balance = sum(piece_values[piece] * piece_masks[piece].sum() for piece in piece_values)
+    material_balance = sum(piece_values[piece] * piece_masks[piece].sum() +
+                           np.sum(piece_masks[piece]*mg_value_tables[piece]) for piece in piece_values)
     score += material_balance
+
 
     # Evaluate pawn structure
     """
@@ -64,31 +51,28 @@ def evaluate_board(chess_board, current_side):
     white_king_pos = np.where(piece_masks[5] == True)
     black_king_pos = np.where(piece_masks[-5] == True)
 
-    # For the players king position
+    # If the king is missing, we cannot do this
+    if len(black_king_pos[0]) == 0 or len(white_king_pos[0]) == 0:
+        return score
+
+    # For the white king position
     for i in range(white_king_pos[0][0]-3, white_king_pos[0][0]+3):
-        if ROWS <= i >= 0: # Make sure we are still on the board
+        if ROWS <= i >= 0:  # Make sure we are still on the board
             continue
         for j in range(white_king_pos[1][0]-3, white_king_pos[1][0]+3):  # Last zero is because numpy is being annoying
             if COLS <= j >= 0:
                 continue
             if chess_board.has_ally((i, j), 1):
-                if current_side == 1:
-                    score += 0.2
-                else:
-                    score -= 0.2
+                # Save the score
+                score += 0.2
     # Black side
-    if len(black_king_pos[0]) == 0:
-        print('we here')
     for i in range(black_king_pos[0][0]-3, black_king_pos[0][0]+3):
-        if ROWS <= i >= 0: # Make sure we are still on the board
+        if ROWS <= i >= 0:  # Make sure we are still on the board
             continue
         for j in range(black_king_pos[1][0]-3, black_king_pos[1][0]+3):
             if COLS <= j >= 0:
                 continue
-            if chess_board.has_ally((i, j), 1):
-                if current_side == -1:
-                    score += 0.2
-                else:
-                    score -= 0.2
+            if chess_board.has_ally((i, j), -1):
+                score -= 0.2
 
     return score

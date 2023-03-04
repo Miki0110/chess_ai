@@ -9,6 +9,15 @@ class ChessBoard:
         self.current_player = 1  # 1 = white, -1 = black
         self.board = self.set_board(FEN_string)
 
+        # Debug stats
+        self.white_turns = 0
+        self.black_turns = 0
+
+        # Stack for minimax
+        self.board_state_stack = []
+        self.black_castle_stack = []  # Queens-, Kings -side
+        self.white_castle_stack = []  # Queens-, Kings -side
+
     def set_board(self, FEN):
         """
         Takes a FEN string and sets a numpy array up containing the board pieces from that
@@ -97,6 +106,13 @@ class ChessBoard:
     def move_piece(self, start_pos, end_pos):
         start_pos = np.array(start_pos)
         end_pos = np.array(end_pos)
+
+        # Save the move
+        self.board_state_stack.append(self.board)
+        self.black_castle_stack.append(self.black_castle)
+        self.white_castle_stack.append(self.white_castle)
+
+        # Retrieve the piece and start moving it
         x1, y1 = np.array(start_pos)
         x2, y2 = np.array(end_pos)
         piece = self.board[x1][y1]
@@ -107,7 +123,8 @@ class ChessBoard:
             if abs(x1-x2) > 1:
                 self.en_passant = end_pos+piece  # This looks dumb but i needed the direction
             # Check if we did one instead
-            if np.array_equal(end_pos, self.en_passant):
+            if (piece == 1 and x2 == 2) or (piece == -1 and x2 == 5)\
+                    and np.array_equal(end_pos, self.en_passant):
                 # Get the place of the pawn
                 enemy_pos = end_pos + (-1*piece)
                 # Remove it from the board
@@ -161,6 +178,14 @@ class ChessBoard:
         self.board[x1][y1] = 0
         self.board[x2][y2] = piece
 
+    def undo_move(self):
+        # Undo the move by setting things back
+        self.board = self.board_state_stack.pop()
+        self.black_castle = self.black_castle_stack.pop()
+        self.white_castle = self.white_castle_stack.pop()
+
+        #self.white_turns
+
     # Function for finding the closest pieces given a direction
     def check_direction(self, pos, move_diagonal, move_straight):
         row, col = pos
@@ -191,8 +216,8 @@ class ChessBoard:
 
             # Check for nearest piece
             top = [0 if len(top_half) == 0 else row if not np.any(top_half[:, col]) else np.argmax(top_half[:, col][::-1] != 0) + 1]
-            right = [0 if len(right_half[0]) == 0 else 7-col if not np.any(right_half[row]) else np.argmax(right_half[row][::-1] != 0) + 1]
-            left = [0 if len(left_half[0]) == 0 else col if not np.any(left_half[row]) else np.argmax(left_half[row] != 0) + 1]
+            right = [0 if len(right_half[0]) == 0 else 7-col if not np.any(right_half[row]) else np.argmax(right_half[row] != 0) + 1]
+            left = [0 if len(left_half[0]) == 0 else col if not np.any(left_half[row]) else np.argmax(left_half[row][::-1] != 0) + 1]
             bot = [0 if len(bot_half) == 0 else 7-row if not np.any(bot_half[:, col]) else np.argmax(bot_half[:, col] != 0) + 1]
             # Combine the results
             straight_coll = np.array((top, right, left, bot), dtype=int)
@@ -251,10 +276,9 @@ class ChessBoard:
                     possible_pos = np.array([pos, incremented_pos])
                     # Append a copy of the current value to the results list
                     v_out.append(possible_pos)
-                else:
-                    # If the last piece is an ally we remove it
-                    if self.has_ally(v_out[-1][1], side):
-                        v_out.pop(-1)
+                # If the last piece is an ally we remove it
+                if self.has_ally(v_out[-1][1], side):
+                    v_out.pop(-1)
         if move_type[1]:  # Check Diagonal moves
             # set up a vector to store the moves in
             increments = [(-1, 1),  # up-right
@@ -273,29 +297,33 @@ class ChessBoard:
                     possible_pos = np.array([pos, incremented_pos])
                     # Append a copy of the current value to the results list
                     v_out.append(possible_pos)
-                else:
-                    # If the last piece is an ally
-                    if self.has_ally(v_out[-1][1], side):
-                        v_out.pop(-1)
+
+                # If the last piece is an ally
+                if self.has_ally(v_out[-1][1], side):
+                    v_out.pop(-1)
         return np.array(v_out)
 
     def pawn_move_calc(self, pos, direction):
         v_out = []
         y, x = pos
         # Move straight
-        if y != 0 or y != 7 and self.board[y+1*direction][x] == 0:
-            v_out.append(np.array([pos, (y+1*direction, x)]))
-        if direction == -1 and y == 6 or direction == 1 and y == 1:
-            v_out.append(np.array([pos, (y+2*direction, x)]))
+        # Check for blocking piece
+        if y != 0 and y != 7:
+            if self.board[y+1*direction][x] == 0:
+                v_out.append(np.array([pos, (y+1*direction, x)]))
+                if ((direction == -1 and y == 6) and self.board[y+2*direction][x] == 0)\
+                        or ((direction == 1 and y == 1) and self.board[y+2*direction][x] == 0):
+                    v_out.append(np.array([pos, (y+2*direction, x)]))
 
-        # Check for diagonal movements
-        if x+1 < 8 and self.has_enemy((y+1*direction, x+1), -1*direction):
-            v_out.append(np.array([pos, (y+1*direction, x+1)]))
-        if x-1 >= 0 and self.has_enemy((y+1*direction, x-1), -1*direction):
-            v_out.append(np.array([pos, (y+1*direction, x-1)]))
+            # Check for diagonal movements
+            if x+1 < 8 and self.has_enemy((y+1*direction, x+1), -1*direction):
+                v_out.append(np.array([pos, (y+1*direction, x+1)]))
+            if x-1 >= 0 and self.has_enemy((y+1*direction, x-1), -1*direction):
+                v_out.append(np.array([pos, (y+1*direction, x-1)]))
 
         # Check for en passant
-        if self.en_passant is not None:
+        start_pos = 1 if direction == 1 else 6
+        if self.en_passant is not None and y != start_pos:
             en_passant_pos = np.array([[y+1*direction, x+1], [y+1*direction, x-1]])
             for current_pos in en_passant_pos:
                 if np.array_equal(current_pos, self.en_passant):

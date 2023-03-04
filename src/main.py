@@ -8,6 +8,10 @@ from src.game_engine.move import Move
 from src.chess_ai.search_algorithm import *
 from src.chess_ai.board_representation import *
 
+
+AI_PLAY = True
+DEBUG = True
+
 # Idk why I made this into a class, could have just used global variables
 class Main:
     def __init__(self):
@@ -37,28 +41,45 @@ class Main:
                 game.show_pieces(screen)
                 mouse.render_blit(screen)
 
-            FEN = board.to_fen('white')
-            print(FEN)
-            chess_ai = ChessBoard(FEN)
-            chess_ai.print_board()
-            player = 1 if game.curr_player == 'white' else -1
-            score, move = minimax(3, chess_ai, -10000, 10000, player)
-            print(move)
-            p = board.squares[move[0][0]][move[0][1]].piece
-            board.calc_moves(p, move[0][0], move[0][1])
-            # Create the move
-            initial = Square(move[0][0], move[0][1])
-            final = Square(move[1][0], move[1][1])
-            move_class = Move(initial, final)
+            if AI_PLAY and game.curr_player == 'white':
+                FEN = board.to_fen('white')
+                chess_ai = ChessBoard(FEN)
+                #chess_ai.print_board()
+                player = 1 if game.curr_player == 'white' else -1
+                score, move = minimax(3, chess_ai, -float('inf'), float('inf'), player)
+                print('current move: ', move)
+                p = board.squares[move[0][0]][move[0][1]].piece
+                print('piece at place: ', p.name)
+                board.calc_moves(p, move[0][0], move[0][1])
+                # Create the move
+                initial = Square(move[0][0], move[0][1])
+                final = Square(move[1][0], move[1][1])
+                move_class = Move(initial, final)
 
-            if board.valid_move(p, move_class):
-                board.move(p, move_class)
-                # Set the next players turn
-                game.next_turn()
+                if board.valid_move(p, move_class):
+                    board.move(p, move_class)
+                    # Set the next players turn
+                    game.next_turn()
 
             # Check for input
             for event in pygame.event.get():
                 # click
+                if event.type == pygame.KEYDOWN:
+                    # DEBUG
+                    if event.key == pygame.K_d:
+                        player = 1 if game.curr_player == 'white' else -1
+                        # Generate board
+                        FEN = board.to_fen('white')
+                        print(FEN)
+                        chess_ai = ChessBoard(FEN)
+                        chess_ai.print_board()
+                        # Generate possible moves
+                        moves = move_generator(chess_ai, player)
+                        print(len(moves))
+                        # Evaluate board rating
+                        score = evaluate_board(chess_ai, player)
+                        print(score)
+
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mouse.update_mouse(event.pos)
                     clicked_pos = mouse.pix_to_pos((mouse.mouseX, mouse.mouseY))
@@ -94,26 +115,11 @@ class Main:
 
                     # Check if it's a valid move
                     if board.valid_move(mouse.piece, move):
-
-                        FEN = board.to_fen('white')
-                        print(FEN)
-                        chess_ai = ChessBoard(FEN)
-                        chess_ai.print_board()
-
                         # move the piece
                         board.move(mouse.piece, move)
                         game.show_pieces(screen)
                         # Set the next players turn
                         game.next_turn()
-
-                        # Calculate the score of the board
-                        chess_ai.move_piece((mouse.initial_row, mouse.initial_col), (release_pos[1], release_pos[0]))
-                        chess_ai.print_board()
-                        evaluate_board(chess_ai, 1)
-                        moves = chess_ai.get_valid_moves((release_pos[1], release_pos[0]))
-
-                        moves = move_generator(chess_ai, 1)
-                        print(len(moves))
 
                     mouse.undrag_piece()  # Let go of whatever we are holding
 

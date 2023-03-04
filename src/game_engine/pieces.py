@@ -119,7 +119,7 @@ class Pawn(Piece):
         for pos_move_col in pos_move_cols:
             # Again can't leave the board
             if not Square.on_board(pos_move_row, pos_move_col):
-                break
+                continue
             # If there's an enemy it's a possible move
             if squares[pos_move_row][pos_move_col].has_enemy_piece(self.color):
                 # Create move
@@ -133,11 +133,14 @@ class Pawn(Piece):
         pos_move_passant = [1] if col == 0 else ([-1] if col == 7 else [-1, 1])
         for direction in pos_move_passant:
             # Check if there's a possibility for en passant
-            if squares[row][col+direction].has_enemy_piece(self.color) and squares[row][col+direction].piece.en_passant:
-                # Create the move
-                move = self._create_move(row, col, row+self.dir, col+direction)
-                move.en_passant = True
-                self.add_move(move)
+            try:
+                if squares[row][col+direction].has_enemy_piece(self.color) and squares[row][col+direction].piece.en_passant:
+                    # Create the move
+                    move = self._create_move(row, col, row+self.dir, col+direction)
+                    move.en_passant = True
+                    self.add_move(move)
+            except ValueError:
+                raise 'failed en passant'
 
 
 

@@ -1,7 +1,38 @@
 from src.chess_ai.eval_functions import *
+import time
 
 
+def timeit(n=1):
+    """
+    Wrapper used to time the execution time of functions
+    :param n: int, sets the amount of runs
+    :return: returns the function values
+    """
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            total_time = 0
+            for i in range(n):
+                start_time = time.time()
+                result = func(*args, **kwargs)
+                end_time = time.time()
+                total_time += (end_time - start_time)
+            print(f"Function '{func.__name__}' took {total_time:.5f} seconds to execute over {n} runs.")
+            return result
+        return wrapper
+    return decorator
+
+
+# TODO: Introduce a hashtable and cache expensive computation
 def minimax(depth, board, alpha, beta, maximizing_player=True):
+    """
+    Mini max function with alpha beta pruning
+    :param depth: The depth the function should search to
+    :param board: The board class
+    :param alpha: alpha value, set to -float('inf') when calling
+    :param beta: beta value, set to float('inf') when calling
+    :param maximizing_player: set to True when the player is white and false when the player is black
+    :return: board score, best move
+    """
     # When we've found the best solution
     if depth == 0:
         return evaluate_board(board), None
@@ -13,7 +44,6 @@ def minimax(depth, board, alpha, beta, maximizing_player=True):
         if len(possible_moves) == 0:
             return -10000, None
         for move in possible_moves:
-            #temp_board = copy.deepcopy(board)
             # Move the piece
             board.move_piece(move[0], move[1])
             # Repeat the process
@@ -29,7 +59,6 @@ def minimax(depth, board, alpha, beta, maximizing_player=True):
                 # Prune if the alpha is bigger than beta
                 if beta <= alpha:
                     break
-                #print('alpha: ', alpha)
         return max_score, best_move
     else:
         min_score = float('inf')
@@ -37,7 +66,6 @@ def minimax(depth, board, alpha, beta, maximizing_player=True):
         if len(possible_moves) == 0:
             return 10000, None
         for move in possible_moves:
-            #temp_board = copy.deepcopy(board)
             # Move the piece
             board.move_piece(move[0], move[1])
             # Repeat the process
@@ -51,7 +79,6 @@ def minimax(depth, board, alpha, beta, maximizing_player=True):
                 beta = min(beta, min_score)
                 if beta <= alpha:
                     break
-                #print('beta: ', beta)
         return min_score, best_move
 
 
@@ -63,7 +90,7 @@ def move_generator(chess_board, current_color):
         piece_mask = chess_board.board < 0
 
     # Get all the indexes indicating players
-    indexes = np.transpose(np.where(piece_mask))
+    indexes = np.argwhere(piece_mask)
 
     # Go through the possible moves for each piece
     pos_moves = np.empty((1, 2, 2), dtype=int)

@@ -21,6 +21,8 @@ def timeit(n=1):
         return wrapper
     return decorator
 
+
+# TODO: Fix en passant to only set value when there is a possible pawn
 class ChessBoard:
     def __init__(self, FEN_string):
         self.en_passant = None
@@ -316,35 +318,6 @@ class ChessBoard:
 
         self.undo_move()
         return False
-
-    def can_attack(self, piece_pos, target_pos, side):
-        """
-        Check if a piece can attack a certain position
-        :param piece_pos: attacking piece [row][col]
-        :param target_pos: enemy piece [row][col]
-        :param side: attacking piece side
-        :return: Bool, True if it can attack, False if not
-        """
-
-        # Retrieve the piece in question
-        piece = abs(self.board[piece_pos[0]][piece_pos[1]])
-
-        # To speed up the algorithm I might introduce a simpler move calculator for this
-        if piece == 1:  # pawn
-            valid_moves = self.pawn_move_calc(piece_pos, int(-1*side))
-        elif piece == 3:  # knight
-            valid_moves = self.knight_move_calc(piece_pos, side)
-        elif piece == 5:  # king
-            valid_moves = self.king_move_calc(piece_pos, side)
-        else:  # The rest
-            move_type = (True, False) if piece == 2 else (False, True) if piece == 4 else (True, True)
-            valid_moves = self.general_move_calc(piece_pos, move_type, side)
-
-        for move in valid_moves:
-            if target_pos[0] == move[1][0] and target_pos[1] == move[1][1]:
-                return True
-            else:
-                return False
 
     def get_valid_moves(self, position):
         """

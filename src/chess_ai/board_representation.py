@@ -38,7 +38,6 @@ def timeit(n=1):
     return decorator
 
 
-# TODO: Fix en passant to only set value when there is a possible pawn
 class ChessBoard:
     def __init__(self, FEN_string):
         self.en_passant = None

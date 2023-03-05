@@ -22,7 +22,7 @@ def timeit(n=1):
     return decorator
 
 
-# TODO: Introduce a hashtable and cache expensive computation
+# TODO: Introduce cache expensive computation
 def minimax(depth, board, alpha, beta, maximizing_player=True, hash_table={}):
     """
     Mini max function with alpha beta pruning and transposition table

@@ -520,13 +520,11 @@ class ChessBoard:
                 v_out.append([pos, (y+1*direction, x-1)])
 
         # Check for en passant
-        start_pos = 1 if direction == 1 else 6
-        if self.en_passant is not None and y != start_pos:
+        if self.en_passant is not None:
             en_passant_pos = np.array([[y+1*direction, x+1], [y+1*direction, x-1]])
             for current_pos in en_passant_pos:
                 if current_pos[0] == self.en_passant[0] and current_pos[1] == self.en_passant[1]:
                     v_out.append(np.array([pos, current_pos]))
-
         return v_out
 
     def knight_move_calc(self, pos, side):

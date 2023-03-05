@@ -26,7 +26,7 @@ def evaluate_board(chess_board):
         -6: chess_board.board == -6,  # b_queen_mask
     }
     # Check game stage
-    early_stage = True if np.sum(chess_board.board != 0) > 16 else False
+    early_stage = True if np.sum(chess_board.board != 0) > 22 else False
 
     # Calculate the material balance
     if early_stage:

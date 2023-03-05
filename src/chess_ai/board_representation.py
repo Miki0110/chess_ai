@@ -1,5 +1,25 @@
 import numpy as np
+import time
 
+
+def timeit(n=1):
+    """
+    Wrapper used to time the execution time of functions
+    :param n: int, sets the amount of runs
+    :return: returns the function values
+    """
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            total_time = 0
+            for i in range(n):
+                start_time = time.time()
+                result = func(*args, **kwargs)
+                end_time = time.time()
+                total_time += (end_time - start_time)
+            print(f"Function '{func.__name__}' took {total_time:.5f} seconds to execute over {n} runs.")
+            return result
+        return wrapper
+    return decorator
 
 class ChessBoard:
     def __init__(self, FEN_string):
@@ -231,22 +251,69 @@ class ChessBoard:
         return moves
 
     def check_in_mate(self, start_pos, end_pos, side):
+        """
+        Check if the king is in mate after moving, by looking at the diagonal and straight moves
+
+        :param start_pos: Start position of the piece moving = [row][col]
+        :param end_pos: End position of the piece moving = [row][col]
+        :param side: Side of the piece moving, 1 for white, -1 for black
+        :return: True if movement results in a mate, False if not
+        """
         # Move the board
         self.move_piece(start_pos, end_pos)
 
         # Find the kings position
         king_pos = np.where(self.board == side*5)
-        # Find enemy positions
-        if side == 1:
-            enemy_pos = np.transpose(np.where(self.board < 0))
-        else:
-            enemy_pos = np.transpose(np.where(self.board > 0))
 
-        # Check if this results in the king being attacked
-        for enemy in enemy_pos:
-            if self.can_attack(enemy, king_pos, -1*side):
-                self.undo_move()
-                return True
+        # Check the straight line for Rooks and Queens
+        hor = self.board[king_pos[0][0]]
+        ver = self.board[:, king_pos[1][0]]
+        # Non-zero vectors
+        hor_zero = np.nonzero(hor)[0]  # Zero is due to numpy bullshittery
+        ver_zero = np.nonzero(ver)[0]
+        # Find the index on the non_zero vector
+        hor_indices = np.where(hor_zero == king_pos[1][0])[0][0]
+        ver_indices = np.where(ver_zero == king_pos[0][0])[0][0]
+
+        # Check the top and left half
+        if (hor_indices > 0 and hor[hor_zero[hor_indices - 1]] == -1*side*2 | -1*side*6) or \
+                (ver_indices > 0 and ver[ver_zero[ver_indices - 1]] == -1*side*2 | -1*side*6):
+            self.undo_move()
+            return True
+        # Check the bottom and right half
+        if (hor_indices != np.shape(hor_zero)[0] - 1 and hor[hor_zero[hor_indices + 1]] == -1*side*2 | -1*side*6) or \
+                (ver_indices != np.shape(ver_zero)[0] - 1 and ver[ver_zero[ver_indices + 1]] == -1*side*2 | -1*side*6):
+            self.undo_move()
+            return True
+
+        # Check the diagonals for pawns, bishops and Queens
+        diag_l = np.diagonal(self.board, king_pos[1][0] - king_pos[0][0])  # Diagonal from the (row-col) eg. 1,2 = 1-2 = -1
+        diag_r = np.diagonal(np.fliplr(self.board), (7 - king_pos[1][0]) - king_pos[0][0])  # Diagonal from the opposite eg. 1, 2 = 7-1-2 = 4
+        # Find the king index in each of the diagonals
+        l_ind = min(king_pos[0][0], king_pos[1][0])  # min(row, distance to wall)
+        r_ind = min(king_pos[0][0], 7-king_pos[1][0]) # min(row, distance to wall)
+        # Check for pawns first
+        if diag_l[l_ind+(-1*side)] == -1*side or diag_r[r_ind+(-1*side)] == -1*side:
+            self.undo_move()
+            return True
+        # Check for bishops
+        l0 = np.nonzero(diag_l)[0]  # Zero is due to numpy bullshittery
+        r0 = np.nonzero(diag_r)[0]
+        # Find the index on the non_zero vector
+        left_indices = np.where(l0 == l_ind)[0][0]
+        right_indices = np.where(r0 == r_ind)[0][0]
+
+        # Check the top half
+        if (left_indices > 0 and diag_l[l0[left_indices - 1]] == -1*side*4 | -1*side*6) or\
+                (right_indices > 0 and diag_r[r0[right_indices - 1]] == -1*side*4 | -1*side*6):
+            self.undo_move()
+            return True
+        # Check the bottom half
+        if (left_indices != np.shape(l0)[0] - 1 and diag_l[l0[left_indices + 1]] == -1*side*4 | -1*side*6) or\
+                (right_indices != np.shape(r0)[0] - 1 and diag_r[r0[right_indices + 1]] == -1*side*4 | -1*side*6):
+            self.undo_move()
+            return True
+
         self.undo_move()
         return False
 
@@ -279,14 +346,12 @@ class ChessBoard:
             else:
                 return False
 
-
     def get_valid_moves(self, position):
         """
         Function that returns valid moves for a piece
         :param position: [row][col]
         :return: list of valid moves, for given piece
         """
-        # TODO: Check for in check moves
         y = position[0]
         x = position[1]
         piece = self.board[y][x]  # 1 = P, 2 = R, 3 = N, 4 = B, 5 = K, 6 = Q

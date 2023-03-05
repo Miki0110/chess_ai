@@ -144,13 +144,13 @@ class Board:
             if self.squares[side][0] and isinstance(l_piece, Rook):
                 if not l_piece.moved and l_piece.color == 'white':
                     castling_rights += 'Q'
-                elif not l_piece.moved and l_piece == 'black':
+                if not l_piece.moved and l_piece.color == 'black':
                     castling_rights += 'q'
             # Check the king side
             if self.squares[side][7] and isinstance(r_piece, Rook):
                 if not r_piece.moved and r_piece.color == 'white':
                     castling_rights += 'K'
-                elif not r_piece.moved and r_piece == 'black':
+                if not r_piece.moved and r_piece.color == 'black':
                     castling_rights += 'k'
         # In case no player is allowed to castle
         if castling_rights == '':

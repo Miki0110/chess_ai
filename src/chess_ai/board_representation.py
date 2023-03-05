@@ -1,6 +1,22 @@
 import numpy as np
 import time
 
+# Dictionary for the string values of each piece value
+piece_values = {1: 'P',  # Pawn
+                2: 'R',  # Rook
+                3: 'N',  # Knight
+                4: 'B',  # Bishop
+                5: 'K',  # King (arbitrary high value to avoid being captured)
+                6: 'Q',  # Queen
+                -1: 'p',  # Pawn
+                -2: 'r',  # Rook
+                -3: 'n',  # Knight
+                -4: 'b',  # Bishop
+                -5: 'k',  # King (arbitrary high value to avoid being captured)
+                -6: 'q',  # Queen
+                }
+# Dictionary for getting the alpha values
+ALPHACOLS = {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f', 6: 'g', 7: 'h'}
 
 def timeit(n=1):
     """
@@ -96,6 +112,57 @@ class ChessBoard:
 
         return board
 
+    def board_to_FEN(self, side):
+        """
+        Function for retrieving a FEN string, used to describe position in the hashtable
+        :param side: 1 for white, -1 for black
+        :return: A FEN string
+        """
+        player = 'w' if side == 1 else 'b'
+
+        # Replace empty squares with a number representing the count of empty squares before the next piece
+        fen = ""
+        for i, row in enumerate(self.board):
+            new_row = ""
+            # Count the distance to pieces through np.nonzero
+            indexes = np.nonzero(row)[0]  # Again the 0 is because of numpy bullshittery
+            # If there are no pieces we just write 8
+            if len(indexes) == 0:
+                new_row = '8'
+            else:
+                # Used for tracking length into the row
+                full_num = 0
+                for index in indexes:
+                    num = index-full_num+1  # Distance from last piece
+                    full_num += num  # Keeping track of how far in the row we are
+                    # If the length is 1 we write no number
+                    if num == 1:
+                        new_row += piece_values[row[index]]
+                    else:
+                        new_row += str(num)+piece_values[row[index]]
+            # Next row indicated by a backslash
+            fen += new_row+'/'
+        # Check for castling
+        castling = ''
+        if self.black_castle[0]:
+            castling += 'q'
+        if self.black_castle[1]:
+            castling += 'k'
+        if self.white_castle[0]:
+            castling += 'Q'
+        if self.white_castle[1]:
+            castling += 'K'
+        if castling == '':
+            castling = '-'
+        # Write in the en passant
+        if self.en_passant is None:
+            passant = '-'
+        else:
+            passant = ALPHACOLS[self.en_passant[1]]+str(self.en_passant[0])
+        # Add in all the other values
+        fen = fen[:-1] + f' {player} {castling} {passant}'
+        return fen
+
     def print_board(self):
         print(self.board)
 
@@ -140,14 +207,14 @@ class ChessBoard:
         # Check for pawns
         if abs(piece) == 1:
             # If we opened up for an en passant
-            if abs(x1-x2) > 1:
-                self.en_passant = end_pos+piece  # This looks dumb but i needed the direction
+            if abs(x1-x2) > 1 and ((y2+1 <= 7 and self.board[x2][y2+1] == -1*piece) or (y2-1 >= 0 and self.board[x2][y2-1] == -1*piece)):
+                self.en_passant = [x2+piece, y2]
             # Check if we did one instead
             if self.en_passant is not None:
                 if (piece == 1 and x2 == 2) or (piece == -1 and x2 == 5)\
                         and end_pos[0] == self.en_passant[0] and end_pos[1] == self.en_passant[1]:
                     # Get the place of the pawn
-                    enemy_pos = end_pos + (-1*piece)
+                    enemy_pos = [x1, y2]
                     # Remove it from the board
                     self.board[enemy_pos[0]][enemy_pos[1]] = 0
                     # Reset the en_passant
@@ -334,6 +401,11 @@ class ChessBoard:
 
         # Simplify the piece representation
         side = 1 if piece >= 1 else -1  # 1 for white, -1 for black
+
+        # If the king is missing the game is over, and we return with no moves
+        if not np.any(self.board == side*5):
+            return []
+
         piece = abs(piece)
 
         if piece == 1:  # pawn

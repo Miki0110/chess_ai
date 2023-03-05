@@ -12,6 +12,7 @@ from src.chess_ai.board_representation import *
 AI_PLAY = True
 DEBUG = True
 
+
 # Idk why I made this into a class, could have just used global variables
 class Main:
     def __init__(self):
@@ -41,7 +42,7 @@ class Main:
                 game.show_pieces(screen)
                 mouse.render_blit(screen)
 
-            if AI_PLAY and game.curr_player == 'white':
+            if AI_PLAY: #and game.curr_player == 'white':
                 FEN = board.to_fen(game.curr_player)
                 chess_ai = ChessBoard(FEN)
                 #chess_ai.print_board()

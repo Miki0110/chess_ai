@@ -297,7 +297,7 @@ class ChessBoard:
             bot_r = np.diagonal(bot_half, col + 1)
 
             # Check for the distance until a non-zero is found
-            top_l = [0 if len(top_l) == 0 else min(7-row, col) if not np.any(top_l) else np.argmax(top_l[::-1] != 0) + 1]
+            top_l = [0 if len(top_l) == 0 else min(row, col) if not np.any(top_l) else np.argmax(top_l[::-1] != 0) + 1]
             top_r = [0 if len(top_r) == 0 else min(row, 7-col) if not np.any(top_r) else np.argmax(top_r[::-1] != 0) + 1]
             bot_l = [0 if len(bot_l) == 0 else min(7-row, col) if not np.any(bot_l) else np.argmax(bot_l != 0) + 1]
             bot_r = [0 if len(bot_r) == 0 else min(7-row, 7-col) if not np.any(bot_r) else np.argmax(bot_r != 0) + 1]
@@ -359,11 +359,20 @@ class ChessBoard:
         diag_r = np.diagonal(np.fliplr(self.board), (7 - king_pos[1][0]) - king_pos[0][0])  # Diagonal from the opposite eg. 1, 2 = 7-1-2 = 4
         # Find the king index in each of the diagonals
         l_ind = min(king_pos[0][0], king_pos[1][0])  # min(row, distance to wall)
-        r_ind = min(king_pos[0][0], 7-king_pos[1][0]) # min(row, distance to wall)
+        r_ind = min(king_pos[0][0], 7-king_pos[1][0])  # min(row, distance to wall)
+
         # Check for pawns first
-        if diag_l[l_ind+(-1*side)] == -1*side or diag_r[r_ind+(-1*side)] == -1*side:
-            self.undo_move()
-            return True
+        if side > 1:
+            if king_pos[0][0] > 1 and ((king_pos[1][0] > 0 and self.board[king_pos[0][0]-1][king_pos[1][0]-1] == -1)
+                                       or (king_pos[1][0] < 7 and self.board[king_pos[0][0]-1][king_pos[1][0]+1] == -1)):
+                self.undo_move()
+                return True
+        else:
+            if king_pos[0][0] < 6 and ((king_pos[1][0] > 0 and self.board[king_pos[0][0]+1][king_pos[1][0]-1] == 1)
+                                       or (king_pos[1][0] < 7 and self.board[king_pos[0][0]+1][king_pos[1][0]+1] == 1)):
+                self.undo_move()
+                return True
+
         # Check for bishops
         l0 = np.nonzero(diag_l)[0]  # Zero is due to numpy bullshittery
         r0 = np.nonzero(diag_r)[0]

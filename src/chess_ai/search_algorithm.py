@@ -23,7 +23,7 @@ def timeit(n=1):
 
 
 # TODO: Introduce cache expensive computation
-def minimax(depth, board, alpha, beta, maximizing_player=True, hash_table={}):
+def minimax(depth, board, alpha, beta, maximizing_player=True, hash_table=None):
     """
     Mini max function with alpha beta pruning and transposition table
     :param depth: The depth the function should search to
@@ -34,6 +34,8 @@ def minimax(depth, board, alpha, beta, maximizing_player=True, hash_table={}):
     :param hash_table: a dictionary to store board states and their corresponding scores
     :return: board score, best move
     """
+    if hash_table is None:
+        hash_table = {}
     # Check if the board state has already been evaluated and stored in the hash table
     side = 1 if maximizing_player else -1
     # The FEN key is used to see save positions in the hashtable

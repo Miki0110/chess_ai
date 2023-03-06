@@ -43,13 +43,13 @@ class Main:
                 game.show_pieces(screen)
                 mouse.render_blit(screen)
 
-            if AI_PLAY: #and game.curr_player == 'white':
+            if AI_PLAY and game.curr_player == 'black':
                 FEN = board.to_fen(game.curr_player)
                 chess_ai = ChessBoard(FEN)
                 #chess_ai.print_board()
                 player = True if game.curr_player == 'white' else False
                 #score, move = minimax(4, chess_ai, -float('inf'), float('inf'), player)
-                score, move = minimax_multiprocess(4, chess_ai, processes=6,maximizing_player=player)
+                score, move = minimax_multiprocess(3, chess_ai, processes=6, maximizing_player=player)
                 print('current move: ', move)
                 p = board.squares[move[0][0]][move[0][1]].piece
                 print('piece at place: ', p.name)

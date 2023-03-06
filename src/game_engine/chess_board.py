@@ -138,20 +138,21 @@ class Board:
         # check for castling rights
         castling_rights = ''
         for side in sides:
-            l_piece = self.squares[side][0].piece
-            r_piece = self.squares[side][7].piece
-            # Check the king side
-            if self.squares[side][7] and isinstance(r_piece, Rook):
-                if not r_piece.moved and r_piece.color == 'white':
-                    castling_rights += 'K'
-                if not r_piece.moved and r_piece.color == 'black':
-                    castling_rights += 'k'
-            # Check queen side
-            if self.squares[side][0] and isinstance(l_piece, Rook):
-                if not l_piece.moved and l_piece.color == 'white':
-                    castling_rights += 'Q'
-                if not l_piece.moved and l_piece.color == 'black':
-                    castling_rights += 'q'
+            if isinstance(self.squares[side][4].piece, King) and not self.squares[side][4].piece.moved:
+                l_piece = self.squares[side][0].piece
+                r_piece = self.squares[side][7].piece
+                # Check the king side
+                if self.squares[side][7] and isinstance(r_piece, Rook):
+                    if not r_piece.moved and r_piece.color == 'white':
+                        castling_rights += 'K'
+                    if not r_piece.moved and r_piece.color == 'black':
+                        castling_rights += 'k'
+                # Check queen side
+                if self.squares[side][0] and isinstance(l_piece, Rook):
+                    if not l_piece.moved and l_piece.color == 'white':
+                        castling_rights += 'Q'
+                    if not l_piece.moved and l_piece.color == 'black':
+                        castling_rights += 'q'
         # In case no player is allowed to castle
         if castling_rights == '':
             castling_rights = '-'

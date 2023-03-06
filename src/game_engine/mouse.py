@@ -1,4 +1,3 @@
-import pygame
 
 from src.constants import *
 
@@ -13,6 +12,7 @@ class Mouse:
 
     # blit method
     def render_blit(self, surface):
+        import pygame
         # retrieve the texture
         self.piece.set_texture()
         texture = self.piece.texture

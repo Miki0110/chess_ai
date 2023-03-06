@@ -1,4 +1,4 @@
-import pygame
+
 import sys
 
 from src.constants import *
@@ -16,13 +16,14 @@ DEBUG = True
 # Idk why I made this into a class, could have just used global variables
 class Main:
     def __init__(self):
+        import pygame
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption('Chess display')
         self.game = Game()
 
     def main_loop(self):
-
+        import pygame
         screen = self.screen
         game = self.game
         board = self.game.board
@@ -47,7 +48,8 @@ class Main:
                 chess_ai = ChessBoard(FEN)
                 #chess_ai.print_board()
                 player = True if game.curr_player == 'white' else False
-                score, move = minimax(3, chess_ai, -float('inf'), float('inf'), player)
+                #score, move = minimax(4, chess_ai, -float('inf'), float('inf'), player)
+                score, move = minimax_multiprocess(4, chess_ai, processes=6,maximizing_player=player)
                 print('current move: ', move)
                 p = board.squares[move[0][0]][move[0][1]].piece
                 print('piece at place: ', p.name)

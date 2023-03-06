@@ -1,4 +1,5 @@
 from src.chess_ai.eval_functions import *
+import multiprocessing as mp
 import time
 
 
@@ -134,3 +135,93 @@ def move_generator(chess_board, current_color):
         pos_moves = np.concatenate((pos_moves, moves))
     # Since the first contains empty positions i slice it away
     return pos_moves[1:]
+
+
+def start_process(depth, board, moves, maximizing_player, result_queue):
+
+    # Init the hash table
+    hash_table = {}
+    # Set start alpha beta values
+    alpha = -float('inf')
+    beta = float('inf')
+
+    if maximizing_player:
+        # Initiate max score as a low value
+        max_score = -float('inf')
+        for move in moves:
+            # Move the piece
+            board.move_piece(move[0], move[1])
+            # Repeat the process
+            score, new_move = minimax(depth - 1, board, alpha, beta, False, hash_table)
+            # Undo the move we just did
+            board.undo_move()
+            # Set the scores
+            if max_score < score:
+                max_score = score
+                best_move = move
+                alpha = max(alpha, max_score)
+                # Prune if the alpha is bigger than beta
+                if beta <= alpha:
+                    break
+        result_queue.put((max_score, best_move))
+    else:
+        # Initiate max score as a low value
+        min_score = float('inf')
+        for move in moves:
+            # Move the piece
+            board.move_piece(move[0], move[1])
+            # Repeat the process
+            score, new_move = minimax(depth - 1, board, alpha, beta, True, hash_table)
+            # Undo the move we just did
+            board.undo_move()
+            # Set the scores
+            if min_score >= score:
+                min_score = score
+                best_move = move
+                beta = min(beta, min_score)
+                if beta <= alpha:
+                    break
+        result_queue.put((min_score, best_move))
+
+
+def minimax_multiprocess(depth, board, processes=4, maximizing_player=True):
+    """
+        Mini max function with alpha beta pruning, transposition table, and multiprocessing
+        :param depth: The depth the function should search to
+        :param board: The board class
+        :param processes: Amount of processes to run
+        :param maximizing_player: set to True when the player is white and false when the player is black
+        :return: board score, best move
+        """
+    # Check if the board state has already been evaluated and stored in the hash table
+    side = 1 if maximizing_player else -1
+
+    # Generate all possible moves
+    possible_moves = move_generator(board, side)
+
+    # Split the possible moves into four chunks
+    chunk_size = len(possible_moves) // processes
+    move_chunks = [possible_moves[i:i + chunk_size] for i in range(0, len(possible_moves), chunk_size)]
+    # To make sure no moves are lost
+    move_chunks[-1] = possible_moves[chunk_size*(processes-1):]
+
+    # Create a Queue object
+    results_queue = mp.Queue()
+
+    p = []
+    for chunk in move_chunks:
+        p.append(mp.Process(target=start_process, args=(depth, board, chunk, maximizing_player, results_queue)))
+        p[-1].start()
+
+    # Wait for the processes to finish
+    for process in p:
+        process.join()
+    # Retrieve the results from the Queue
+    results = [results_queue.get() for _ in range(processes)]
+    if maximizing_player:
+        best_score = max(results, key=lambda x: x[0])[0]
+        best_move = max(results, key=lambda x: x[0])[1]
+    else:
+        best_score = min(results, key=lambda x: x[0])[0]
+        best_move = min(results, key=lambda x: x[0])[1]
+    return best_score, best_move

@@ -129,28 +129,31 @@ class ChessBoard:
             if len(indexes) == 0:
                 new_row = '8'
             else:
-                # Used for tracking length into the row
-                full_num = 0
-                for index in indexes:
-                    num = index-full_num+1  # Distance from last piece
-                    full_num += num  # Keeping track of how far in the row we are
-                    # If the length is 1 we write no number
-                    if num == 1:
-                        new_row += piece_values[row[index]]
+                for j in range(len(indexes)):
+                    if j != 0:
+                        num = indexes[j]-indexes[j-1]-1  # Distance from last piece
                     else:
-                        new_row += str(num)+piece_values[row[index]]
+                        num = indexes[j]
+                    # If the length is 1 we write no number
+                    if num == 0:
+                        new_row += piece_values[row[indexes[j]]]
+                    else:
+                        new_row += str(num)+piece_values[row[indexes[j]]]
+                # Set the last value to the distance to the wall
+                if indexes[-1] != 7:
+                    new_row += str(7-indexes[-1])
             # Next row indicated by a backslash
             fen += new_row+'/'
         # Check for castling
         castling = ''
-        if self.black_castle[0]:
-            castling += 'q'
-        if self.black_castle[1]:
-            castling += 'k'
-        if self.white_castle[0]:
-            castling += 'Q'
         if self.white_castle[1]:
             castling += 'K'
+        if self.white_castle[0]:
+            castling += 'Q'
+        if self.black_castle[1]:
+            castling += 'k'
+        if self.black_castle[0]:
+            castling += 'q'
         if castling == '':
             castling = '-'
         # Write in the en passant
@@ -344,13 +347,13 @@ class ChessBoard:
         ver_indices = np.where(ver_zero == king_pos[0][0])[0][0]
 
         # Check the top and left half
-        if (hor_indices > 0 and hor[hor_zero[hor_indices - 1]] == -1*side*2 | -1*side*6) or \
-                (ver_indices > 0 and ver[ver_zero[ver_indices - 1]] == -1*side*2 | -1*side*6):
+        if (hor_indices > 0 and (hor[hor_zero[hor_indices - 1]] == -1*side*2 or hor[hor_zero[hor_indices - 1]] == -1*side*6)) or \
+                (ver_indices > 0 and (ver[ver_zero[ver_indices - 1]] == -1*side*2 or ver[ver_zero[ver_indices - 1]] == -1*side*6)):
             self.undo_move()
             return True
         # Check the bottom and right half
-        if (hor_indices != np.shape(hor_zero)[0] - 1 and hor[hor_zero[hor_indices + 1]] == -1*side*2 | -1*side*6) or \
-                (ver_indices != np.shape(ver_zero)[0] - 1 and ver[ver_zero[ver_indices + 1]] == -1*side*2 | -1*side*6):
+        if (hor_indices != np.shape(hor_zero)[0] - 1 and (hor[hor_zero[hor_indices + 1]] == -1*side*2 or hor[hor_zero[hor_indices + 1]] == -1*side*6)) or \
+                (ver_indices != np.shape(ver_zero)[0] - 1 and (ver[ver_zero[ver_indices + 1]] == -1*side*2 or ver[ver_zero[ver_indices + 1]] == -1*side*6)):
             self.undo_move()
             return True
 
@@ -381,13 +384,13 @@ class ChessBoard:
         right_indices = np.where(r0 == r_ind)[0][0]
 
         # Check the top half
-        if (left_indices > 0 and diag_l[l0[left_indices - 1]] == -1*side*4 | -1*side*6) or\
-                (right_indices > 0 and diag_r[r0[right_indices - 1]] == -1*side*4 | -1*side*6):
+        if (left_indices > 0 and (diag_l[l0[left_indices - 1]] == -1*side*4 or diag_l[l0[left_indices - 1]] == -1*side*6)) or\
+                (right_indices > 0 and (diag_r[r0[right_indices - 1]] == -1*side*4 or diag_r[r0[right_indices - 1]] == -1*side*6)):
             self.undo_move()
             return True
         # Check the bottom half
-        if (left_indices != np.shape(l0)[0] - 1 and diag_l[l0[left_indices + 1]] == -1*side*4 | -1*side*6) or\
-                (right_indices != np.shape(r0)[0] - 1 and diag_r[r0[right_indices + 1]] == -1*side*4 | -1*side*6):
+        if (left_indices != np.shape(l0)[0] - 1 and (diag_l[l0[left_indices + 1]] == -1*side*4 or diag_l[l0[left_indices + 1]] == -1*side*6)) or\
+                (right_indices != np.shape(r0)[0] - 1 and (diag_r[r0[right_indices + 1]] == -1*side*4 or diag_r[r0[right_indices + 1]] == -1*side*6)):
             self.undo_move()
             return True
 

@@ -1,5 +1,3 @@
-import pygame
-
 from src.constants import *
 from src.game_engine.chess_board import Board, Square
 from src.game_engine.mouse import Mouse
@@ -10,6 +8,7 @@ class Game:
     Class that is used to render anything happening on the chess board
     """
     def __init__(self):
+        import pygame
         self.curr_player = 'white'
         self.hovered_sqr = None
         self.board = Board()
@@ -19,6 +18,7 @@ class Game:
     """Rendering methods"""
     # Render the background
     def show_bg(self, surface):
+        import pygame
         light_color = (234, 235, 200)
         dark_color = (119, 154, 88)
         for row in range(ROWS):
@@ -32,6 +32,7 @@ class Game:
 
     # Render coordinates
     def show_coord(self, surface):
+        import pygame
         light_color = (234, 235, 200)
         dark_color = (119, 154, 88)
         # For drawing out the square coordinate(numbers)
@@ -58,6 +59,7 @@ class Game:
 
     # Render the pieces
     def show_pieces(self, surface):
+        import pygame
         # Loop through the board position and render the pieces if they are there
         for row in range(ROWS):
             for col in range(COLS):
@@ -81,6 +83,7 @@ class Game:
                         surface.blit(img, piece.texture_rect)
 
     def show_moves(self, surface):
+        import pygame
         light_color = '#C86464'
         dark_color = '#C84646'
         if self.mouse.dragging:
@@ -96,6 +99,7 @@ class Game:
                 pygame.draw.rect(surface, color, rect)
 
     def show_last_move(self, surface):
+        import pygame
         light_color = (244, 247, 116)
         dark_color = (172, 195, 51)
         if self.board.last_move:

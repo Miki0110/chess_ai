@@ -30,7 +30,7 @@ class CplusAI:
         while True:
             line_returned = self.cpp_process.stdout.readline().strip().decode("utf-8")
             print(line_returned)
-            if line_returned == "We are done":
+            if "We are done" in line_returned:
                 break
             resulting_move = line_returned
         return resulting_move
@@ -41,5 +41,5 @@ if __name__ == "__main__":
     time.sleep(1)
     while True:
         string = 'HEY\n'
-        result = cpp.send_string(string)
+        result = cpp.cpp_minimax(string)
         print(result)

@@ -73,6 +73,12 @@ const std::unordered_map<int, char> ALPHACOLS = {
     {4, 'e'}, {5, 'f'}, {6, 'g'}, {7, 'h'}
 };
 
+// Translation of the coloumns to their alpha variable
+const std::unordered_map<char, int> ALPHATOCOLS = {
+    {'a', 0}, {'b', 1}, {'c', 2}, {'d', 3},
+    {'e', 4}, {'f', 5}, {'g', 6}, {'h', 7}
+};
+
 
 std::array<std::array<int, 8>, 8> mg_pawn_table = {{
         {{0,   0,   0,   0,   0,   0,  0,   0}},

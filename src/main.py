@@ -50,7 +50,8 @@ class Main:
                 game.show_pieces(screen)
                 mouse.render_blit(screen)
 
-            if VS_AI and game.curr_player == PLAYER or AI_PLAY:
+            if (VS_AI and game.curr_player == PLAYER and self.print_counter < 15) or (AI_PLAY and self.print_counter < 15):
+                self.print_counter += 1
                 FEN = board.to_fen(game.curr_player)
                 print(cpp.cpp_minimax(FEN))
                 """chess_ai = ChessBoard(FEN)
@@ -158,6 +159,7 @@ class Main:
                     sys.exit()
 
             pygame.display.update()
+
 
 
 if __name__ == "__main__":

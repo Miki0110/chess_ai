@@ -19,13 +19,20 @@ class CplusAI:
         self.cpp_process = Popen(folder_path, shell=True, stdin=PIPE, stdout=PIPE)
 
     def cpp_minimax(self, message):
+        print('here')
         # Add a new line for the c++ program
         message = message + '\n'
         # Send the string
         self.cpp_process.stdin.write(message.encode())
         self.cpp_process.stdin.flush()
 
-        resulting_move = self.cpp_process.stdout.readline().strip()
+        resulting_move = ""
+        while True:
+            line_returned = self.cpp_process.stdout.readline().strip().decode("utf-8")
+            print(line_returned)
+            if line_returned == "We are done":
+                break
+            resulting_move = line_returned
         return resulting_move
 
 

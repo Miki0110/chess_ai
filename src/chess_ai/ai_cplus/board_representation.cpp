@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <evaluation_values.h>
 #include <cmath>
+#include <vector>
+#include <array>
 
 class Board
 {
@@ -11,7 +13,7 @@ private:
     int en_passant[2] = {-1, -1}; // -1 = no possible passants
     bool black_castle[2] = {false, false}; // Queens-, Kings -side
     bool white_castle[2] = {false, false}; // Queens-, Kings -side
-    int current_player = 1; // 1 = white, -1 = black
+    //int current_player = 1; // 1 = white, -1 = black
 
     std::array<std::array<int, 8>, 8> board;
 
@@ -189,11 +191,11 @@ private:
                 if (black_castle[0] && end_col == 1){
                     // Move the rook
                     board[0][0] = 0;
-                    board[0][2] = -2;
+                    board[0][3] = -2;
                 }else if (black_castle[1] && end_col == 6){
                     // Move the rook
                     board[0][7] = 0;
-                    board[0][4] = -2;
+                    board[0][5] = -2;
                 }
                 // Set castling to false
                 black_castle[0] = false;
@@ -211,8 +213,292 @@ private:
         //TODO: Undo the last move
     }
 
-public:
+    // Function to check possible moves -> Rook, Bishop and Queen
+    std::vector<std::array<int, 4>> general_move_calc(int p_row, int p_col, bool move_diagonal, bool move_straight){
+        // Get the piece we are checking
+        int piece = board[p_row][p_col];
+        // Output vector
+        std::vector<std::array<int, 4>> moves;
 
+        // Check diagonal moves
+        if(move_diagonal){
+            // check diagonal from top left to bottom right
+            for (int i = 1; p_row - i >= 0 && p_col - i >= 0; i++) {
+                int pos = board[p_row - i][p_col - i];
+                if (pos == 0) {
+                    // save the possible move
+                    moves.push_back({p_row, p_col, p_row - i, p_col - i});
+                }else if((pos > 0) == (piece > 0)){
+                    // If the piece is the same color as the side there's an ally
+                    break;
+                }else{
+                    // If the piece is the not same color as the side there's an enemy
+                    moves.push_back({p_row, p_col, p_row - i, p_col - i});
+                    break;
+                }
+            }
+            for (int i = 1; p_row + i < 8 && p_col + i < 8; i++) {
+                int pos = board[p_row + i][p_col + i];
+                if (pos == 0) {
+                    // save the possible move
+                    moves.push_back({p_row, p_col, p_row + i, p_col + i});
+                }else if((pos > 0) == (piece > 0)){
+                    // If the piece is the same color as the side there's an ally
+                    break;
+                }else{
+                    // If the piece is the not same color as the side there's an enemy
+                    moves.push_back({p_row, p_col, p_row + i, p_col + i});
+                    break;
+                }
+            }
+
+            // check diagonal from top right to bottom left
+            for (int i = 1; p_row - i >= 0 && p_col + i < 8; i++) {
+                int pos = board[p_row - i][p_col + i];
+                if (pos == 0) {
+                    // save the possible move
+                    moves.push_back({p_row, p_col, p_row - i, p_col + i});
+                }else if((pos > 0) == (piece > 0)){
+                    // If the piece is the same color as the side there's an ally
+                    break;
+                }else{
+                    // If the piece is the not same color as the side there's an enemy
+                    moves.push_back({p_row, p_col, p_row - i, p_col + i});
+                    break;
+                }
+            }
+            for (int i = 1; p_row + i < 8 && p_col - i >= 0; i++) {
+                int pos = board[p_row + i][p_col - i];
+                if (pos == 0) {
+                    // save the possible move
+                    moves.push_back({p_row, p_col, p_row + i, p_col - i});
+                }else if((pos > 0) == (piece > 0)){
+                    // If the piece is the same color as the side there's an ally
+                    break;
+                }else{
+                    // If the piece is the not same color as the side there's an enemy
+                    moves.push_back({p_row, p_col, p_row + i, p_col - i});
+                    break;
+                }
+            }
+        }
+        // Check straight moves
+        if(move_straight){
+            // Check up
+            for (int i = 1; p_row + i < 8; i++) {
+                int pos = board[p_row + i][p_col];
+                if (pos == 0) {
+                    // save the possible move
+                    moves.push_back({p_row, p_col, p_row + i, p_col});
+                }else if((pos > 0) == (piece > 0)){
+                    // If the piece is the same color as the side there's an ally
+                    break;
+                }else{
+                    // If the piece is the not same color as the side there's an enemy
+                    moves.push_back({p_row, p_col, p_row + i, p_col});
+                    break;
+                }
+            }
+            // Check below
+            for (int i = 1; p_row - i >= 0; i++) {
+                int pos = board[p_row - i][p_col];
+                if (pos == 0) {
+                    // save the possible move
+                    moves.push_back({p_row, p_col, p_row - i, p_col});
+                }else if((pos > 0) == (piece > 0)){
+                    // If the piece is the same color as the side there's an ally
+                    break;
+                }else{
+                    // If the piece is the not same color as the side there's an enemy
+                    moves.push_back({p_row, p_col, p_row - i, p_col});
+                    break;
+                }
+            }
+
+            // check right
+            for (int i = 1; p_col + i < 8; i++) {
+                int pos = board[p_row][p_col + i];
+                if (pos == 0) {
+                    // save the possible move
+                    moves.push_back({p_row, p_col, p_row, p_col + i});
+                }else if((pos > 0) == (piece > 0)){
+                    // If the piece is the same color as the side there's an ally
+                    break;
+                }else{
+                    // If the piece is the not same color as the side there's an enemy
+                    moves.push_back({p_row, p_col, p_row, p_col + i});
+                    break;
+                }
+            }
+            // check left
+            for (int i = 1; p_col - i >= 0; i++) {
+                int pos = board[p_row][p_col - i];
+                if (pos == 0) {
+                    // save the possible move
+                    moves.push_back({p_row, p_col, p_row, p_col - i});
+                }else if((pos > 0) == (piece > 0)){
+                    // If the piece is the same color as the side there's an ally
+                    break;
+                }else{
+                    // If the piece is the not same color as the side there's an enemy
+                    moves.push_back({p_row, p_col, p_row, p_col - i});
+                    break;
+                }
+            }
+        }
+       
+       return moves;
+    }
+    // Function to check for pawn moves
+    std::vector<std::array<int, 4>> pawn_move_calc(int p_row, int p_col){
+        int piece = board[p_row][p_col];
+        int direction = -1*piece;
+        // output vector
+        std::vector<std::array<int, 4>> moves;
+        // Check for blocking pieces
+        if (p_row + direction < 8 && p_row + direction >= 0) {
+            if (board[p_row + direction][p_col] == 0) {
+                // If the space is free the piece can move there
+                moves.push_back({p_row, p_col, p_row + direction, p_col});
+                // if we are at the starting position we can move two spaces
+                if ((p_row == 6 && piece == 1) || (p_row == 1 && piece == -1)) {
+                    if (board[p_row + direction*2][p_col] == 0) {
+                        moves.push_back({p_row, p_col, p_row + direction*2, p_col});
+                    }
+                }
+            }
+        }
+        // Check for capturing pieces
+        if (p_row + direction < 8 && p_row + direction >= 0) {
+            if (p_col + 1 < 8) {
+                if (has_enemy(p_row + direction, p_col + 1, piece)){
+                    // If there is an enemy we can capture it
+                    moves.push_back({p_row, p_col, p_row + direction, p_col + 1});
+                }
+            }
+            if (p_col - 1 >= 0) {
+                if (has_enemy(p_row + direction, p_col - 1, piece)) {
+                    // If there is an enemy we can capture it
+                    moves.push_back({p_row, p_col, p_row + direction, p_col - 1});
+                }
+            }
+        }
+
+        // Check for en passant
+        if(en_passant[0] != -1){
+            // Check if the pawn is in the correct position
+            int possible_pos[4] = {en_passant[0]+direction, en_passant[1]-1, en_passant[0]+direction, en_passant[1]+1};
+            if ((p_row == possible_pos[0] && p_col == possible_pos[1]) || (p_row == possible_pos[2] && p_col == possible_pos[3])) {
+                    // If the pawn is in the correct row and column we can capture it
+                    moves.push_back({p_row, p_col, en_passant[0], en_passant[1]});
+            }
+        }
+        return moves;
+    }
+    // Function to check for knight moves
+    std::vector<std::array<int, 4>> knight_move_calc(int p_row, int p_col){
+        int piece = board[p_row][p_col];
+        int side = piece > 0 ? 1 : -1;
+
+        // output vector
+        std::vector<std::array<int, 4>> moves;
+
+        // Check for all possible moves
+        int possible_pos[8][2] = {{p_row+2, p_col+1}, {p_row+2, p_col-1}, {p_row-2, p_col+1}, {p_row-2, p_col-1}, {p_row+1, p_col+2}, {p_row+1, p_col-2}, {p_row-1, p_col+2}, {p_row-1, p_col-2}};
+        for (int i = 0; i < 8; i++) {
+            if (possible_pos[i][0] < 8 && possible_pos[i][0] >= 0 && possible_pos[i][1] < 8 && possible_pos[i][1] >= 0) {
+                if (board[possible_pos[i][0]][possible_pos[i][1]] == 0 || has_enemy(possible_pos[i][0], possible_pos[i][1], side)) {
+                    // If the space is free or has an enemy we can move there
+                    moves.push_back({p_row, p_col, possible_pos[i][0], possible_pos[i][1]});
+                }
+            }
+        }
+        return moves;
+    }
+    // Function to check for King moves
+    std::vector<std::array<int, 4>> king_move_calc(int p_row, int p_col){
+        int piece = board[p_row][p_col];
+        int side = piece > 0 ? 1 : -1;
+
+        // output vector
+        std::vector<std::array<int, 4>> moves;
+
+        // Check for all possible moves
+        int possible_pos[8][2] = {{p_row+1, p_col}, {p_row-1, p_col}, {p_row, p_col+1}, {p_row, p_col-1}, {p_row+1, p_col+1}, {p_row+1, p_col-1}, {p_row-1, p_col+1}, {p_row-1, p_col-1}};
+        for (int i = 0; i < 8; i++) {
+            if (possible_pos[i][0] < 8 && possible_pos[i][0] >= 0 && possible_pos[i][1] < 8 && possible_pos[i][1] >= 0) {
+                if (board[possible_pos[i][0]][possible_pos[i][1]] == 0 || has_enemy(possible_pos[i][0], possible_pos[i][1], side)) {
+                    // If the space is free or has an enemy we can move there
+                    moves.push_back({p_row, p_col, possible_pos[i][0], possible_pos[i][1]});
+                }
+            }
+        }
+        // Check for castling
+        if (side == 1) {
+            // Check for white castling and if the king is being blocked
+            if (white_castle[0] && board[7][1] == 0 && board[7][2] == 0 && board[7][3] == 0) {
+                // Move the position back if possible
+                moves.push_back({p_row, p_col, p_row, p_col-2});
+            }
+            if (white_castle[1] && board[7][5] == 0 && board[7][6] == 0) {
+                // Check if the king and rook are being blocked
+                moves.push_back({p_row, p_col, p_row, p_col+2});
+            }
+        }else{
+            // Check for white castling and if the king is being blocked
+            if (black_castle[0] && board[0][1] == 0 && board[0][2] == 0 && board[0][3] == 0) {
+                // Move the position back if possible
+                moves.push_back({p_row, p_col, p_row, p_col-2});
+            }
+            if (black_castle[1] && board[0][5] == 0 && board[0][6] == 0) {
+                // Check if the king and rook are being blocked
+                moves.push_back({p_row, p_col, p_row, p_col+2});
+            }
+        }
+        return moves;
+    }
+
+    // Function to get valid moves for a piece
+    std::vector<std::array<int, 4>> get_valid_moves(int p_row, int p_col){
+        int piece = board[p_row][p_col];
+        std::vector<std::array<int, 4>> moves;
+
+        // Check for the piece type
+        switch (std::abs(piece)) {
+            case 1:
+                // Pawn
+                moves = pawn_move_calc(p_row, p_col);
+                break;
+            case 2:
+                // Rook
+                moves = general_move_calc(p_row, p_col, 0, 1);
+                break;
+            case 3:
+                // Knight
+                moves = knight_move_calc(p_row, p_col);
+                break;
+            case 4:
+                // Bishop
+                moves = general_move_calc(p_row, p_col, 1, 0);
+                break;
+            case 6:
+                // Queen
+                moves = general_move_calc(p_row, p_col, 1, 1);
+                break;
+            case 5:
+                // King
+                moves = king_move_calc(p_row, p_col);
+                break;
+            default:
+                // If the piece is not valid return an empty vector
+                return moves;
+        }
+        // TODO: Check for checkmates
+        return moves;
+    }
+
+public:
+    int current_player = 1; // 1 = white, -1 = black
     void print_board(){
         // Print the array
         std::cout << "Current board:" << std::endl;
@@ -226,6 +512,19 @@ public:
         std::cout << "White castling rights: " << white_castle[0] << white_castle[1] << std::endl;
         std::cout << "Black castling rights: " << black_castle[0] << black_castle[1] << std::endl;
         std::cout << "en passant rights: " << en_passant[0] << en_passant[1] << std::endl;
+    }
+    
+    std::vector<std::array<int, 4>> get_allmoves(int side){
+        std::vector<std::array<int, 4>> moves;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (board[i][j] != 0 && board[i][j] > 0 == side > 0) {
+                    std::vector<std::array<int, 4>> temp = get_valid_moves(i, j);
+                    moves.insert(moves.end(), temp.begin(), temp.end());
+                }
+            }
+        }
+        return moves;
     }
 
     // Constructer, used for setting the board up
@@ -243,7 +542,7 @@ int main() {
 
     while (std::getline(std::cin, input_string))
     {
-        std::cout << "Recieved string: " << input_string << std::endl;
+        //std::cout << "Recieved string: " << input_string << std::endl;
         // Check if the input string is the termination string
         if (input_string == "close program")
         {
@@ -251,7 +550,11 @@ int main() {
         }
         // start the board up
         Board board(input_string);
-        board.print_board();
+        //board.print_board();
+        std::vector<std::array<int, 4>> moves = board.get_allmoves(board.current_player);
+        std::cout << "Amount of moves calculated: " << moves.size() << "\n" << std::endl;
+
+        std::cout << "We are done" << std::endl;
     }
 
     std::cout << "C++ program finished" << std::endl;

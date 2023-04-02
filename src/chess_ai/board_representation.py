@@ -37,7 +37,22 @@ def timeit(n=1):
         return wrapper
     return decorator
 
-
+# Dictionary for the string values of each piece value
+piece_values = {1: 'P',  # Pawn
+                2: 'R',  # Rook
+                3: 'N',  # Knight
+                4: 'B',  # Bishop
+                5: 'K',  # King (arbitrary high value to avoid being captured)
+                6: 'Q',  # Queen
+                -1: 'p',  # Pawn
+                -2: 'r',  # Rook
+                -3: 'n',  # Knight
+                -4: 'b',  # Bishop
+                -5: 'k',  # King (arbitrary high value to avoid being captured)
+                -6: 'q',  # Queen
+                }
+# Dictionary for getting the alpha values
+ALPHACOLS = {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f', 6: 'g', 7: 'h'}
 class ChessBoard:
     def __init__(self, FEN_string):
         self.en_passant = None
@@ -391,6 +406,21 @@ class ChessBoard:
         # Check the bottom half
         if (left_indices != np.shape(l0)[0] - 1 and (diag_l[l0[left_indices + 1]] == -1*side*4 or diag_l[l0[left_indices + 1]] == -1*side*6)) or\
                 (right_indices != np.shape(r0)[0] - 1 and (diag_r[r0[right_indices + 1]] == -1*side*4 or diag_r[r0[right_indices + 1]] == -1*side*6)):
+            self.undo_move()
+            return True
+
+        # Check for knights
+        possible_knight_moves = np.array([[-2, 1], [-1, 2], [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1]])
+        king_pos = np.tile(np.array(king_pos).T, (len(possible_knight_moves), 1))
+        # Calculate possible knight positions
+        general_moves = possible_knight_moves + king_pos
+        # Check if any of the moves leave the boundary
+        boundary_mask = np.logical_and(general_moves >= 0, general_moves <= 7)
+        boundary_mask = np.all(boundary_mask, axis=1)
+        # Remove the ones that do leave the boundary
+        possible_knight_moves = general_moves[boundary_mask]
+        # If at any of the positions a knight is found it's a check
+        if np.any(self.board[possible_knight_moves[:, 0], possible_knight_moves[:, 1]] == -1*side*3):
             self.undo_move()
             return True
 

@@ -239,7 +239,7 @@ class King(Piece):
             # Check if there's a rook that hasn't moved
         if empty and isinstance(squares[row][0].piece, Rook) and not squares[row][0].piece.moved:
             # Create the move
-            move = self._create_move(row, col, row, 1)
+            move = self._create_move(row, col, row, 2)
             # Set castling to true
             move.castling = True
             # append valid move

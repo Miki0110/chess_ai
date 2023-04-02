@@ -40,8 +40,8 @@ class Board:
 
         if any(move.castling for move in piece.moves) and piece.moves[piece.moves.index(move)].castling:
             # Set the direction
-            r_new_col = 2 if final.col == 1 else 5
-            r_old_col = 0 if final.col == 1 else 7
+            r_new_col = 3 if final.col == 2 else 5
+            r_old_col = 0 if final.col == 2 else 7
             # update the board
             self.squares[final.row][r_new_col].piece = Rook(piece.color)
             self.squares[final.row][r_old_col].piece = None

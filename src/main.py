@@ -7,10 +7,13 @@ from src.game_engine.game import Game
 from src.game_engine.move import Move
 from src.chess_ai.search_algorithm import *
 from src.chess_ai.board_representation import *
+from src.chess_ai.ai_cplus.cpp_communicator import *
 
-
-AI_PLAY = True
+VS_AI = False  # True to play against the bot
+AI_PLAY = True  # True to let the bot fight itself
 DEBUG = True
+
+PLAYER = 'white'
 
 
 # Idk why I made this into a class, could have just used global variables
@@ -21,6 +24,8 @@ class Main:
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption('Chess display')
         self.game = Game()
+        self.print_counter = 0
+        self.DEPTH = 3
 
     def main_loop(self):
         import pygame
@@ -28,6 +33,8 @@ class Main:
         game = self.game
         board = self.game.board
         mouse = self.game.mouse
+
+        cpp = CplusAI()
 
         while True:
             # Render the game
@@ -43,13 +50,14 @@ class Main:
                 game.show_pieces(screen)
                 mouse.render_blit(screen)
 
-            if AI_PLAY and game.curr_player == 'black':
+            if VS_AI and game.curr_player == PLAYER or AI_PLAY:
                 FEN = board.to_fen(game.curr_player)
-                chess_ai = ChessBoard(FEN)
+                print(cpp.cpp_minimax(FEN))
+                """chess_ai = ChessBoard(FEN)
                 #chess_ai.print_board()
                 player = True if game.curr_player == 'white' else False
-                #score, move = minimax(4, chess_ai, -float('inf'), float('inf'), player)
-                score, move = minimax_multiprocess(3, chess_ai, processes=6, maximizing_player=player)
+                score, move = minimax(self.DEPTH, chess_ai, -float('inf'), float('inf'), player)
+                #score, move = minimax_multiprocess(3, chess_ai, processes=6, maximizing_player=player)
                 print('current move: ', move)
                 p = board.squares[move[0][0]][move[0][1]].piece
                 print('piece at place: ', p.name)
@@ -63,6 +71,8 @@ class Main:
                     board.move(p, move_class)
                     # Set the next players turn
                     game.next_turn()
+                    self.print_counter = 0"""
+
 
             # Check for input
             for event in pygame.event.get():
@@ -70,18 +80,29 @@ class Main:
                 if event.type == pygame.KEYDOWN:
                     # DEBUG
                     if event.key == pygame.K_d:
-                        player = 1 if game.curr_player == 'white' else -1
-                        # Generate board
-                        FEN = board.to_fen('white')
-                        print(FEN)
+                        FEN = board.to_fen(game.curr_player)
                         chess_ai = ChessBoard(FEN)
-                        chess_ai.print_board()
-                        # Generate possible moves
-                        moves = move_generator(chess_ai, player)
-                        print(len(moves))
-                        # Evaluate board rating
-                        score = evaluate_board(chess_ai, player)
-                        print(score)
+                        # chess_ai.print_board()
+                        player = False if PLAYER == 'black' else True
+                        score, move = minimax(self.DEPTH, chess_ai, -float('inf'), float('inf'), player)
+                        # score, move = minimax_multiprocess(3, chess_ai, processes=6, maximizing_player=player)
+                        print('current move: ', move)
+                        p = board.squares[move[0][0]][move[0][1]].piece
+                        print('piece at place: ', p.name)
+                        board.calc_moves(p, move[0][0], move[0][1])
+                        # Create the move
+                        initial = Square(move[0][0], move[0][1])
+                        final = Square(move[1][0], move[1][1])
+                        move_class = Move(initial, final)
+
+                        if board.valid_move(p, move_class):
+                            board.move(p, move_class)
+                    if event.key == pygame.K_3:
+                        self.DEPTH = 3
+                    elif event.key == pygame.K_4:
+                        self.DEPTH = 4
+                    elif event.key == pygame.K_5:
+                        self.DEPTH = 5
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mouse.update_mouse(event.pos)
@@ -90,7 +111,7 @@ class Main:
                     if board.squares[clicked_pos[1]][clicked_pos[0]].has_piece():
                         # Retrieve the piece type
                         piece = board.squares[clicked_pos[1]][clicked_pos[0]].piece
-                        if piece.color != game.curr_player:
+                        if not DEBUG and piece.color != game.curr_player:
                             break
                         # Calc moves
                         board.calc_moves(piece, clicked_pos[1], clicked_pos[0])
@@ -117,20 +138,19 @@ class Main:
                     move = Move(initial, final)
 
                     # Check if it's a valid move
-                    if board.valid_move(mouse.piece, move):
+                    if DEBUG:
+                        # move the piece
+                        board.move(mouse.piece, move)
+                        game.show_pieces(screen)
+                    elif board.valid_move(mouse.piece, move):
                         # move the piece
                         board.move(mouse.piece, move)
                         game.show_pieces(screen)
                         # Set the next players turn
                         game.next_turn()
+                        self.print_counter = 0
 
                     mouse.undrag_piece()  # Let go of whatever we are holding
-
-
-
-                # key press
-                elif event.type == pygame.KEYDOWN:
-                    pass
 
                 # quit application
                 elif event.type == pygame.QUIT:

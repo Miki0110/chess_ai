@@ -15,6 +15,8 @@ private:
     bool black_castle[2] = {false, false}; // Queens-, Kings -side
     bool white_castle[2] = {false, false}; // Queens-, Kings -side
 
+    int king_pos[2][2] = {{7, 4}, {0, 4}}; // [0] = white, [1] = black
+
 
     std::array<std::array<int, 8>, 8> board;
 
@@ -25,7 +27,8 @@ private:
         int to_row;
         int to_col;
         int captured_piece;
-        // Other members as needed
+        int old_passant[2];
+        bool old_castle[2];
     };
     // Move history
     std::vector<ChessMove> move_history;
@@ -431,6 +434,25 @@ public:
         board[move.from_row][move.from_col] = piece;
         // Remove the piece from the old position
         board[move.to_row][move.to_col] = move.captured_piece;
+        // set back passant
+        en_passant[0] = move.old_passant[0];
+        en_passant[1] = move.old_passant[1];
+        // set back castling
+        if (piece > 0) {
+            white_castle[0] = move.old_castle[0];
+            white_castle[1] = move.old_castle[1];
+        }else{
+            black_castle[0] = move.old_castle[0];
+            black_castle[1] = move.old_castle[1];
+        }
+        // Set back king pos
+        if (piece == 5) {
+            king_pos[0][0] = move.from_row;
+            king_pos[0][1] = move.from_col;
+        }else if (piece == -5){
+            king_pos[1][0] = move.from_row;
+            king_pos[1][1] = move.from_col;
+        }
     }
 
         // Function to move pieces
@@ -438,6 +460,16 @@ public:
         // retrieve the piece
         int piece = board[start_row][start_col];
         int sign = piece > 0 ? 1 : -1;
+        // values for saving last move
+        bool old_castle[2];
+        int old_passant[2] = {en_passant[0], en_passant[1]};
+        if(sign == 1){
+            old_castle[0] = white_castle[0];
+            old_castle[1] = white_castle[1];
+        }else{
+            old_castle[0] = black_castle[0];
+            old_castle[1] = black_castle[1];
+        }
 
         // Check if the piece is a pawn
         if (std::abs(piece) == 1){
@@ -499,6 +531,10 @@ public:
                 // Set castling to false
                 white_castle[0] = false;
                 white_castle[1] = false;
+
+                // update the king position
+                king_pos[0][0] = end_row;
+                king_pos[0][1] = end_col;
             }else{
                 if (black_castle[0] && end_col == 1){
                     // Move the rook
@@ -512,12 +548,17 @@ public:
                 // Set castling to false
                 black_castle[0] = false;
                 black_castle[1] = false;
+
+                // update the king position
+                king_pos[1][0] = end_row;
+                king_pos[1][1] = end_col;
             }
         }
         // Get the piece captued
         int captured_piece = board[end_row][end_col];
         // save the move
-        ChessMove move = {start_row, start_col, end_row, end_col, captured_piece};
+        ChessMove move = {start_row, start_col, end_row, end_col, captured_piece, {old_passant[0], old_passant[1]}, {old_castle[0], old_castle[1]}};
+        
         move_history.push_back(move);
         // Move the piece
         board[end_row][end_col] = piece;

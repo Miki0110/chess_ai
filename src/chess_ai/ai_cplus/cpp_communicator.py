@@ -32,7 +32,7 @@ class CplusAI:
             print(line_returned)
             if "We are done" in line_returned:
                 break
-            resulting_move = line_returned
+            resulting_move = line_returned if line_returned is not '' else resulting_move
         return resulting_move
 
 

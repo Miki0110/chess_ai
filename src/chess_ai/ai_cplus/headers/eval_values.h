@@ -1,5 +1,5 @@
-#ifndef MY_HEADER_FILE_H
-#define MY_HEADER_FILE_H
+#ifndef EVALUATION_VALUES_H
+#define EVALUATION_VALUES_H
 
 #include <unordered_map>
 #include <iostream>

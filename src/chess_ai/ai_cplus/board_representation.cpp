@@ -1,7 +1,8 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
-#include <evaluation_values.h>
+#include <eval_values.h>
+#include <eval_functions.h>
 #include <cmath>
 #include <vector>
 #include <array>
@@ -13,9 +14,21 @@ private:
     int en_passant[2] = {-1, -1}; // -1 = no possible passants
     bool black_castle[2] = {false, false}; // Queens-, Kings -side
     bool white_castle[2] = {false, false}; // Queens-, Kings -side
-    //int current_player = 1; // 1 = white, -1 = black
+
 
     std::array<std::array<int, 8>, 8> board;
+
+    // Struct for moves
+    struct ChessMove {
+        int from_row;
+        int from_col;
+        int to_row;
+        int to_col;
+        int captured_piece;
+        // Other members as needed
+    };
+    // Move history
+    std::vector<ChessMove> move_history;
 
     // Function that resets the board
     void reset_board(){
@@ -82,7 +95,7 @@ private:
         // possible en passant
         if(FEN[space_pos+1] != '-'){ // In case there are no passants
             en_passant[0] = ALPHATOCOLS.at(FEN[space_pos+1]);
-            en_passant[1] = FEN[space_pos+2] - '0';
+            en_passant[1] = FEN[space_pos+2] - '0'; // Convert to an integer
         }
     }
 
@@ -116,101 +129,6 @@ private:
         }else{
             return true;
         }
-    }
-
-    // Function to move pieces
-    void move_piece(int start_row, int start_col, int end_row, int end_col){
-        // Save the moves
-            //TODO: Save the moves
-
-        // retrieve the piece
-        int piece = board[start_row][start_col];
-        int sign = piece > 0 ? 1 : -1;
-
-        // Check if the piece is a pawn
-        if (std::abs(piece) == 1){
-            // Check if the pawn is moving two steps and if there are enemies nearby
-            if ((std::abs(start_row - end_row) == 2) &&
-               (end_col <= 7 && board[end_row][end_col+1] == -1*piece) ||
-               (end_col >= 0 && board[end_row][end_col-1] == -1*piece)){
-                    // Set the possible move for en passant
-                    en_passant[0] = end_row+piece;
-                    en_passant[1] = end_col;
-                }else{
-                    // Else we reset the en passant
-                    en_passant[0] = -1;
-                    en_passant[1] = -1;
-                }
-            // Check if we completed an en passant instead
-            if (end_row == en_passant[0] && end_col == en_passant[1]){
-                // Remove the piece
-                board[start_row][end_col] = 0;
-            }
-        }else{ // Incase we are not pawns we reset the passants
-            en_passant[0] = -1;
-            en_passant[1] = -1;
-        }
-
-        // Check for Rook moves
-        if (std::abs(piece) == 2){
-            // Check if we are moving the white rook
-            if (sign == 1){
-                // Check if we are moving the left rook
-                if (start_col == 0){
-                    white_castle[0] = false;
-                }else if(start_col == 7){
-                    white_castle[1] = false;
-                }
-            }else{
-                // Check if we are moving the left rook
-                if (start_col == 0){
-                    black_castle[0] = false;
-                }else if(start_col == 7){
-                    black_castle[1] = false;
-                }
-            }
-        }
-
-        // Check for King moves
-        if (std::abs(piece) == 5){
-            // Check if we are moving the white king
-            if (sign == 1){
-                if (white_castle[0] && end_col == 1){
-                    // Move the rook
-                    board[7][0] = 0;
-                    board[7][2] = 2;
-                }else if (white_castle[1] && end_col == 6){
-                    // Move the rook
-                    board[7][7] = 0;
-                    board[7][4] = 2;
-                }
-                // Set castling to false
-                white_castle[0] = false;
-                white_castle[1] = false;
-            }else{
-                if (black_castle[0] && end_col == 1){
-                    // Move the rook
-                    board[0][0] = 0;
-                    board[0][3] = -2;
-                }else if (black_castle[1] && end_col == 6){
-                    // Move the rook
-                    board[0][7] = 0;
-                    board[0][5] = -2;
-                }
-                // Set castling to false
-                black_castle[0] = false;
-                black_castle[1] = false;
-            }
-        }
-
-        // Move the piece
-        board[end_row][end_col] = piece;
-        // Remove the piece from the old position
-        board[start_row][start_col] = 0;
-    }
-
-    void undo_move(){
-        //TODO: Undo the last move
     }
 
     // Function to check possible moves -> Rook, Bishop and Queen
@@ -499,6 +417,113 @@ private:
 
 public:
     int current_player = 1; // 1 = white, -1 = black
+
+    // Function to undo a move
+    void undo_move(){
+        // Get the last move
+        ChessMove move = move_history.back();
+        // Remove the move from the history
+        move_history.pop_back();
+        // Get the piece
+        int piece = board[move.to_row][move.to_col];
+        // Move the piece back
+        board[move.from_row][move.from_col] = piece;
+        // Remove the piece from the old position
+        board[move.to_row][move.to_col] = move.captured_piece;
+    }
+
+        // Function to move pieces
+    void move_piece(int start_row, int start_col, int end_row, int end_col){
+        // retrieve the piece
+        int piece = board[start_row][start_col];
+        int sign = piece > 0 ? 1 : -1;
+
+        // Check if the piece is a pawn
+        if (std::abs(piece) == 1){
+            // Check if the pawn is moving two steps and if there are enemies nearby
+            if ((std::abs(start_row - end_row) == 2) &&
+               (end_col <= 7 && board[end_row][end_col+1] == -1*piece) ||
+               (end_col >= 0 && board[end_row][end_col-1] == -1*piece)){
+                    // Set the possible move for en passant
+                    en_passant[0] = end_row+piece;
+                    en_passant[1] = end_col;
+                }else{
+                    // Else we reset the en passant
+                    en_passant[0] = -1;
+                    en_passant[1] = -1;
+                }
+            // Check if we completed an en passant instead
+            if (end_row == en_passant[0] && end_col == en_passant[1]){
+                // Remove the piece
+                board[start_row][end_col] = 0;
+            }
+        }else{ // Incase we are not pawns we reset the passants
+            en_passant[0] = -1;
+            en_passant[1] = -1;
+        }
+
+        // Check for Rook moves
+        if (std::abs(piece) == 2){
+            // Check if we are moving the white rook
+            if (sign == 1){
+                // Check if we are moving the left rook
+                if (start_col == 0){
+                    white_castle[0] = false;
+                }else if(start_col == 7){
+                    white_castle[1] = false;
+                }
+            }else{
+                // Check if we are moving the left rook
+                if (start_col == 0){
+                    black_castle[0] = false;
+                }else if(start_col == 7){
+                    black_castle[1] = false;
+                }
+            }
+        }
+
+        // Check for King moves
+        if (std::abs(piece) == 5){
+            // Check if we are moving the white king
+            if (sign == 1){
+                if (white_castle[0] && end_col == 1){
+                    // Move the rook
+                    board[7][0] = 0;
+                    board[7][2] = 2;
+                }else if (white_castle[1] && end_col == 6){
+                    // Move the rook
+                    board[7][7] = 0;
+                    board[7][4] = 2;
+                }
+                // Set castling to false
+                white_castle[0] = false;
+                white_castle[1] = false;
+            }else{
+                if (black_castle[0] && end_col == 1){
+                    // Move the rook
+                    board[0][0] = 0;
+                    board[0][3] = -2;
+                }else if (black_castle[1] && end_col == 6){
+                    // Move the rook
+                    board[0][7] = 0;
+                    board[0][5] = -2;
+                }
+                // Set castling to false
+                black_castle[0] = false;
+                black_castle[1] = false;
+            }
+        }
+        // Get the piece captued
+        int captured_piece = board[end_row][end_col];
+        // save the move
+        ChessMove move = {start_row, start_col, end_row, end_col, captured_piece};
+        move_history.push_back(move);
+        // Move the piece
+        board[end_row][end_col] = piece;
+        // Remove the piece from the old position
+        board[start_row][start_col] = 0;
+    }
+
     void print_board(){
         // Print the array
         std::cout << "Current board:" << std::endl;
@@ -527,6 +552,11 @@ public:
         return moves;
     }
 
+    float get_board_value(){
+        float score = evaluate_board(board);
+        return score;
+    }
+
     // Constructer, used for setting the board up
     Board(std::string FEN){
         set_board(FEN);
@@ -553,7 +583,7 @@ int main() {
         //board.print_board();
         std::vector<std::array<int, 4>> moves = board.get_allmoves(board.current_player);
         std::cout << "Amount of moves calculated: " << moves.size() << "\n" << std::endl;
-
+        std::cout << "Board Value: " << board.get_board_value() << std::endl;
         std::cout << "We are done" << std::endl;
     }
 

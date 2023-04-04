@@ -63,7 +63,7 @@ std::array<std::array<int, 8>, 8> bolean_board(std::array<std::array<int, 8>, 8>
     return new_arr;
 }
 
-float evaluate_board(std::array<std::array<int, 8>, 8> board, int king_pos[2]){
+float evaluate_board(std::array<std::array<int, 8>, 8> board, int king_pos[2][2]){
     float score = 0;
 
     // Get material values

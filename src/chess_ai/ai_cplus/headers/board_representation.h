@@ -137,6 +137,166 @@ private:
         }
     }
 
+    // Function to check if the move results in a checkmate
+    bool check_in_mate(int start_row, int start_col, int end_row, int end_col){
+        // Retrieve the side
+        int side = board[start_row][start_col] > 0 ? 1 : -1;
+        
+        // Move the piece
+        move_piece(start_row, start_col, end_row, end_col);
+
+        // Get the king position
+        int king_row;
+        int king_col;
+        if (side == 1){
+            king_row = king_pos[0][0];
+            king_col = king_pos[0][1];
+        }else{
+            king_row = king_pos[1][0];
+            king_col = king_pos[1][1];
+        }
+
+        // Check straight lines for Rooks or Queens
+        for (int i = 1; king_row + i < 8; i++) {
+                int pos = board[king_row + i][king_col];
+                if(pos != 0){
+                    // check if the found piece is an enemy rook or queen
+                    if(pos == -1*side*2 || pos == -1*side*6){
+                        // If it is, the king is in check
+                        undo_move();
+                        return true;
+                    }else{
+                        // If it's not, there's no check
+                        break;
+                    }
+                }
+            }
+        // Check below
+        for (int i = 1; king_row - i >= 0; i++) {
+            int pos = board[king_row - i][king_col];
+            if(pos != 0){
+                // check if the found piece is an enemy rook or queen
+                if(pos == -1*side*2 || pos == -1*side*6){
+                    // If it is, the king is in check
+                    undo_move();
+                    return true;
+                }else{
+                    // If it's not, there's no check
+                    break;
+                }
+            }
+        }
+
+        // check right
+        for (int i = 1; king_col + i < 8; i++) {
+            int pos = board[king_row][king_col + i];
+            if(pos != 0){
+                // check if the found piece is an enemy rook or queen
+                if(pos == -1*side*2 || pos == -1*side*6){
+                    // If it is, the king is in check
+                    undo_move();
+                    return true;
+                }else{
+                    // If it's not, there's no check
+                    break;
+                }
+            }
+        }
+        // check left
+        for (int i = 1; king_col - i >= 0; i++) {
+            int pos = board[king_row][king_col - i];
+            if(pos != 0){
+                // check if the found piece is an enemy rook or queen
+                if(pos == -1*side*2 || pos == -1*side*6){
+                    // If it is, the king is in check
+                    undo_move();
+                    return true;
+                }else{
+                    // If it's not, there's no check
+                    break;
+                }
+            }
+        }
+
+        // Check diagonal lines for Bishops or Queens
+        for (int i = 1; king_row - i >= 0 && king_col - i >= 0; i++) {
+            int pos = board[king_row - i][king_col - i];
+            if(pos != 0){
+                // check if the found piece is an enemy rook or queen
+                if(pos == -1*side*2 || pos == -1*side*6){
+                    // If it is, the king is in check
+                    undo_move();
+                    return true;
+                }else{
+                    // If it's not, there's no check
+                    break;
+                }
+            }
+        }
+        for (int i = 1; king_row + i < 8 && king_col + i < 8; i++) {
+            int pos = board[king_row + i][king_col + i];
+            if(pos != 0){
+            // check if the found piece is an enemy rook or queen
+                if(pos == -1*side*2 || pos == -1*side*6){
+                    // If it is, the king is in check
+                    undo_move();
+                    return true;
+                }else{
+                    // If it's not, there's no check
+                    break;
+                }
+            }
+        }
+
+        // check diagonal from top right to bottom left
+        for (int i = 1; king_row - i >= 0 && king_col + i < 8; i++) {
+            int pos = board[king_row - i][king_col + i];
+            if(pos != 0){
+                // check if the found piece is an enemy rook or queen
+                if(pos == -1*side*2 || pos == -1*side*6){
+                    // If it is, the king is in check
+                    undo_move();
+                    return true;
+                }else{
+                    // If it's not, there's no check
+                    break;
+                }
+            }
+        }
+        for (int i = 1; king_row + i < 8 && king_col - i >= 0; i++) {
+            int pos = board[king_row + i][king_col - i];
+            if(pos != 0){
+                // check if the found piece is an enemy rook or queen
+                if(pos == -1*side*2 || pos == -1*side*6){
+                    // If it is, the king is in check
+                    undo_move();
+                    return true;
+                }else{
+                    // If it's not, there's no check
+                    break;
+                }
+            }
+        }
+
+        // Check for knights
+        int knight_moves[8][2] = {{king_row+2, king_col+1}, {king_row+2, king_col-1}, {king_row-2, king_col+1}, {king_row-2, king_col-1}, {king_row+1, king_col+2}, {king_row+1, king_col-2}, {king_row-1, king_col+2}, {king_row-1, king_col-2}};
+        for (int i = 0; i < 8; i++) {
+            int row = knight_moves[i][0];
+            int col = knight_moves[i][1];
+            if(row >= 0 && row < 8 && col >= 0 && col < 8){
+                int pos = board[row][col];
+                if(pos == -1*side*3){
+                    // If it is, the king is in check
+                    undo_move();
+                    return true;
+                }
+            }
+        }
+        // If nothing checks the king, return false
+        undo_move();
+        return false;
+    }
+
     // Function to check possible moves -> Rook, Bishop and Queen
     std::vector<std::array<int, 4>> general_move_calc(int p_row, int p_col, bool move_diagonal, bool move_straight){
         // Get the piece we are checking
@@ -417,7 +577,15 @@ private:
                 // If the piece is not valid return an empty vector
                 return moves;
         }
-        // TODO: Check for checkmates
+        // check the moves for checks
+        for (int i = 0; i < moves.size(); i++) {
+            // Check if the move is valid
+            if (check_in_mate(moves[i][0], moves[i][1], moves[i][2], moves[i][3])) {
+                // If the move is not valid remove it from the list
+                moves.erase(moves.begin() + i);
+                i--;
+            }
+        }
         return moves;
     }
 

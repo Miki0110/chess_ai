@@ -28,7 +28,6 @@ int main() {
     int n_sum = 0;
     int board_value = 0;
 
-    std::cout << "Postive value board:" << std::endl;
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             board_value = board[i][j];
@@ -39,8 +38,7 @@ int main() {
                 p_sum += board_value*mg_value_tables.at(board_value)[i][j];
             }
         }
-    }
-    std::cout << "Total value: " << p_sum << std::endl;   
+    }  
     
 
     while (std::getline(std::cin, input_string))
@@ -56,9 +54,10 @@ int main() {
         board.print_board();
         std::vector<std::array<int, 4>> moves = board.get_allmoves(board.current_player);
         MiniMaxResult result;
-        result = minimax(4, board, -1000000, 1000000, true);
-        std::cout << "Best move: " << result.move[0] << " " << result.move[1] << " " << result.move[2] << " " << result.move[3] << std::endl;
+        result = minimax(6, &board, -1000000, 1000000, true);
+        std::cout << "Best move: " << result.move[0] << "," << result.move[1] << "," << result.move[2] << "," << result.move[3] << std::endl;
         std::cout << "Score: " << result.score << std::endl;
+        std::cout << "We are done" << std::endl;
     }
 
     std::cout << "C++ program finished" << std::endl;

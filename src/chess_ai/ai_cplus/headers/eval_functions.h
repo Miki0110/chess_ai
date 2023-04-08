@@ -71,7 +71,27 @@ float evaluate_board(std::array<std::array<int, 8>, 8> board, int king_pos[2][2]
 
     // Get pawn values
 
+
     // Get King safety
+    for(int i = -2; i < 2; i++){
+        if(i !=0 && king_pos[0][0]+i >= 0 && king_pos[0][0]+i < 8){ 
+            for(int j = -2; j < 2; j++){
+                if(j !=0 && king_pos[0][1]+j >= 0 && king_pos[0][1]+j < 8){ // Don't want the king itself or positions outside the board
+                    if(board[king_pos[0][0]+i][king_pos[0][1]+j] > 0){ // If there's an ally we consider that great
+                        score += 2;
+                    }
+                }
+            }
+        }else if(i !=0 && king_pos[1][0]+i >= 0 && king_pos[1][0]+i < 8){
+            for(int j = -2; j < 2; j++){
+                if(j !=0 && king_pos[1][1]+j >= 0 && king_pos[1][1]+j < 8){ // Don't want the king itself or positions outside the board
+                    if(board[king_pos[0][0]+i][king_pos[0][1]+j] > 0){ // If there's an ememy we consider that bad
+                        score -= 2;
+                    }
+                }
+            }
+        }
+    }
     
 
     return score;

@@ -41,7 +41,7 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, bool maximiz
         // When there are no moves it's either a mate or the king is dead
         if (possible_moves.size() == 0) {
             int score = -10000;
-            return {score, {}};
+            return {score, {-1, -1, -1, -1}};
         }
         
         for (int i = 0; i < possible_moves.size(); i++) {
@@ -76,7 +76,7 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, bool maximiz
         // When there are no moves it's either a mate or the king is dead
         if (possible_moves.size() == 0) {
             int score = 10000;
-            return {score, {}};
+            return {score, {-1, -1, -1, -1}};
         }
         for (int i = 0; i < possible_moves.size(); i++) {
             std::array<int, 4> move = possible_moves[i];

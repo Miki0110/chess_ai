@@ -4,6 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <array>
+#include <sstream>
 
 #include <eval_values.h>
 #include <eval_functions.h>
@@ -14,32 +15,14 @@
 // This program should sit and wait for FEN strings from the python program
 int main() {
     std::string input_string;
-    std::array<std::array<int, 8>, 8> board = {{
-                                               {{-2,-3,-4,-5,-6,-4,-3,-2}},
-                                               {{-1,-1,-1,-1,-1,-1,-1,-1}},
-                                               {{0,0,0,0,0,0,0,0}},
-                                               {{0,0,0,0,0,0,0,0}},
-                                               {{0,0,0,0,0,0,0,0}},
-                                               {{0,0,0,0,0,0,0,0}},
-                                               {{1,1,1,1,1,1,1,1}},
-                                               {{2,3,4,5,6,4,3,2}}
-                                               }};
-    int p_sum = 0;
-    int n_sum = 0;
-    int board_value = 0;
+    std::string test = "rnbqk2r/1p4bp/p4p2/2pP4/3P4/2P2PP1/PP4BP/R2QK2R b kqKQ - 17 25";
+    Board board(test);
 
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            board_value = board[i][j];
-            if (board_value == 0){
-                std::cout << 0 << " ";
-            }else{
-                std::cout << board_value*mg_value_tables.at(board_value)[i][j] << " ";
-                p_sum += board_value*mg_value_tables.at(board_value)[i][j];
-            }
-        }
-    }  
-    
+    board.print_board();
+    std::vector<std::array<int, 4>> moves = board.debug_moves(1, 6);
+    for(int i = 0; i < moves.size(); i++){
+        std::cout << moves[i][0] << "," << moves[i][1] << "," << moves[i][2] << "," << moves[i][3] << std::endl;
+    }
 
     while (std::getline(std::cin, input_string))
     {
@@ -49,12 +32,35 @@ int main() {
         {
             break;
         }
+        std::cout << "input string: " << input_string << std::endl;
+        // Get the string stream
+        std::stringstream input_ss(input_string);
+        int number;
+        std::string fen;
+        
+        // Extract the number
+        input_ss >> number;
+
+        // Extract the comma separator
+        char comma;
+        input_ss >> comma;
+
+        // Extract the rest of the string
+        std::getline(input_ss, fen);
+
+        std::cout << "number: " << number << std::endl;
+        std::cout << "fen: " << fen << std::endl;
         // start the board up
-        Board board(input_string);
+        Board board(fen);
         board.print_board();
-        std::vector<std::array<int, 4>> moves = board.get_allmoves(board.current_player);
+        std::vector<std::array<int, 4>> moves = board.get_allmoves(number);
         MiniMaxResult result;
-        result = minimax(6, &board, -1000000, 1000000, true);
+        if(number == 1){
+            result = minimax(4, &board, -1000000, 1000000, true);
+        }else{
+            result = minimax(4, &board, -1000000, 1000000, false);
+        }
+        
         std::cout << "Best move: " << result.move[0] << "," << result.move[1] << "," << result.move[2] << "," << result.move[3] << std::endl;
         std::cout << "Score: " << result.score << std::endl;
         std::cout << "We are done" << std::endl;

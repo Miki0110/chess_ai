@@ -50,29 +50,22 @@ class Main:
                 game.show_pieces(screen)
                 mouse.render_blit(screen)
 
-            if (VS_AI and game.curr_player == PLAYER and self.print_counter < 15) or (AI_PLAY and self.print_counter < 15):
-                self.print_counter += 1
+            if AI_PLAY:
                 FEN = board.to_fen(game.curr_player)
-                print(cpp.cpp_minimax(FEN))
-                """chess_ai = ChessBoard(FEN)
-                #chess_ai.print_board()
-                player = True if game.curr_player == 'white' else False
-                score, move = minimax(self.DEPTH, chess_ai, -float('inf'), float('inf'), player)
-                #score, move = minimax_multiprocess(3, chess_ai, processes=6, maximizing_player=player)
+                move = cpp.cpp_minimax(f'{1 if game.curr_player == "white" else -1},{FEN}')
                 print('current move: ', move)
-                p = board.squares[move[0][0]][move[0][1]].piece
+                p = board.squares[move[0]][move[1]].piece
                 print('piece at place: ', p.name)
-                board.calc_moves(p, move[0][0], move[0][1])
+                board.calc_moves(p, move[0], move[1])
                 # Create the move
-                initial = Square(move[0][0], move[0][1])
-                final = Square(move[1][0], move[1][1])
+                initial = Square(move[0], move[1])
+                final = Square(move[2], move[3])
                 move_class = Move(initial, final)
 
                 if board.valid_move(p, move_class):
                     board.move(p, move_class)
-                    # Set the next players turn
+                    #Advance the game
                     game.next_turn()
-                    self.print_counter = 0"""
 
 
             # Check for input
@@ -82,18 +75,14 @@ class Main:
                     # DEBUG
                     if event.key == pygame.K_d:
                         FEN = board.to_fen(game.curr_player)
-                        chess_ai = ChessBoard(FEN)
-                        # chess_ai.print_board()
-                        player = False if PLAYER == 'black' else True
-                        score, move = minimax(self.DEPTH, chess_ai, -float('inf'), float('inf'), player)
-                        # score, move = minimax_multiprocess(3, chess_ai, processes=6, maximizing_player=player)
+                        move = cpp.cpp_minimax(f'{1 if game.curr_player == "white" else -1},{FEN}')
                         print('current move: ', move)
-                        p = board.squares[move[0][0]][move[0][1]].piece
+                        p = board.squares[move[0]][move[1]].piece
                         print('piece at place: ', p.name)
-                        board.calc_moves(p, move[0][0], move[0][1])
+                        board.calc_moves(p, move[0], move[1])
                         # Create the move
-                        initial = Square(move[0][0], move[0][1])
-                        final = Square(move[1][0], move[1][1])
+                        initial = Square(move[0], move[1])
+                        final = Square(move[2], move[3])
                         move_class = Move(initial, final)
 
                         if board.valid_move(p, move_class):

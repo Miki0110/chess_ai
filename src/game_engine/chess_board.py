@@ -34,9 +34,12 @@ class Board:
             # Check for en passant
             if abs(initial.row - final.row) == 2:
                 piece.en_passant = True
+            else:
+                piece.en_passant = False
             # Check if we did one instead
             if any(move.en_passant for move in piece.moves) and piece.moves[piece.moves.index(move)].en_passant:
                 self.squares[initial.row][final.col].piece = None
+
 
         if any(move.castling for move in piece.moves) and piece.moves[piece.moves.index(move)].castling:
             # Set the direction
@@ -158,12 +161,12 @@ class Board:
             castling_rights = '-'
         # Possible En Passant target
         en_passant_target = ''
-        for row in self.squares:
+        """for row in self.squares:
             for square in row:
                 piece = square.piece
                 if isinstance(piece, Pawn):
                     if piece.en_passant:
-                        en_passant_target += square.alphacol + str(square.row)
+                        en_passant_target += square.alphacol + str(square.row)"""
         # In case no player has en passant targets
         if en_passant_target == '':
             en_passant_target = '-'

@@ -770,6 +770,10 @@ public:
         return score;
     }
 
+    std::vector<std::array<int, 4>> debug_moves(int row, int col){
+        return get_valid_moves(row, col);
+    }
+
     // Constructer, used for setting the board up
     Board(std::string FEN){
         set_board(FEN);

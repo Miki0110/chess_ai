@@ -19,6 +19,7 @@ class CplusAI:
         self.cpp_process = Popen(folder_path, shell=True, stdin=PIPE, stdout=PIPE)
 
     def cpp_minimax(self, message):
+        print(message)
         # Add a new line for the c++ program
         message = message + '\n'
         # Send the string

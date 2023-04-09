@@ -27,7 +27,7 @@ int sum_materialvalues(std::array<std::array<int, 8>, 8> board){
             for (int j = 0; j < 8; j++) {
                 value = board[i][j];
                 if (value != 0){
-                    sum += value*mg_value_tables.at(value)[i][j]; // Piece value * the positional value
+                    sum += value+mg_value_tables.at(value)[i][j]; // Piece value * the positional value
                     }
             }
         }
@@ -36,7 +36,7 @@ int sum_materialvalues(std::array<std::array<int, 8>, 8> board){
             for (int j = 0; j < 8; j++) {
                 value = board[i][j];
                 if (value != 0){
-                    sum += value*eg_value_tables.at(value)[i][j]; // Piece value * the positional value
+                    sum += value+eg_value_tables.at(value)[i][j]; // Piece value * the positional value
                     }
             }
         }
@@ -73,6 +73,9 @@ float evaluate_board(std::array<std::array<int, 8>, 8> board, int king_pos[2][2]
 
 
     // Get King safety
+    if(king_pos[0][0] == -1){ // incase the king is dead
+        return score;
+    }
     for(int i = -2; i < 2; i++){
         if(i !=0 && king_pos[0][0]+i >= 0 && king_pos[0][0]+i < 8){ 
             for(int j = -2; j < 2; j++){

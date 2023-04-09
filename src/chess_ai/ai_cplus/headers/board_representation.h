@@ -19,6 +19,7 @@ private:
     bool white_castle[2] = {false, false}; // Queens-, Kings -side
 
     int king_pos[2][2] = {{7, 4}, {0, 4}}; // [0] = white, [1] = black
+    bool game_over = false;
 
 
     std::array<std::array<int, 8>, 8> board;
@@ -32,6 +33,7 @@ private:
         int captured_piece;
         int old_passant[2];
         bool old_castle[2];
+        bool did_castle[2];
     };
     // Move history
     std::vector<ChessMove> move_history;
@@ -148,10 +150,13 @@ private:
         // Get the king position
         int king_row;
         int king_col;
-        if (side == 1){
+        if (std::abs(board[end_row][end_col]) == 5){ // If the piece is a king
+            king_row = end_row;
+            king_col = end_col;
+        }else if (side == 1){ // If the piece is white
             king_row = king_pos[0][0];
             king_col = king_pos[0][1];
-        }else{
+        }else{ // If the piece is black
             king_row = king_pos[1][0];
             king_col = king_pos[1][1];
         }
@@ -161,7 +166,7 @@ private:
                 int pos = board[king_row + i][king_col];
                 if(pos != 0){
                     // check if the found piece is an enemy rook or queen
-                    if(pos == -1*side*2 || pos == -1*side*6){
+                    if(pos == -1*side*2 || pos == -1*side*6 || (i == 1 && pos == -1*side*5)){ // first position can be a king
                         // If it is, the king is in check
                         undo_move();
                         return true;
@@ -176,7 +181,7 @@ private:
             int pos = board[king_row - i][king_col];
             if(pos != 0){
                 // check if the found piece is an enemy rook or queen
-                if(pos == -1*side*2 || pos == -1*side*6){
+                if(pos == -1*side*2 || pos == -1*side*6 || (i == 1 && pos == -1*side*5)){ // first position can be a king
                     // If it is, the king is in check
                     undo_move();
                     return true;
@@ -192,7 +197,7 @@ private:
             int pos = board[king_row][king_col + i];
             if(pos != 0){
                 // check if the found piece is an enemy rook or queen
-                if(pos == -1*side*2 || pos == -1*side*6){
+                if(pos == -1*side*2 || pos == -1*side*6 || (i == 1 && pos == -1*side*5)){ // first position can be a king
                     // If it is, the king is in check
                     undo_move();
                     return true;
@@ -207,7 +212,7 @@ private:
             int pos = board[king_row][king_col - i];
             if(pos != 0){
                 // check if the found piece is an enemy rook or queen
-                if(pos == -1*side*2 || pos == -1*side*6){
+                if(pos == -1*side*2 || pos == -1*side*6 || (i == 1 && pos == -1*side*5)){ // first position can be a king
                     // If it is, the king is in check
                     undo_move();
                     return true;
@@ -223,7 +228,7 @@ private:
             int pos = board[king_row - i][king_col - i];
             if(pos != 0){
                 // check if the found piece is an enemy rook or queen
-                if(pos == -1*side*2 || pos == -1*side*6){
+                if(pos == -1*side*4 || pos == -1*side*6 || (i == 1 && pos == -1*side*5)){ // first position can be a king
                     // If it is, the king is in check
                     undo_move();
                     return true;
@@ -237,7 +242,7 @@ private:
             int pos = board[king_row + i][king_col + i];
             if(pos != 0){
             // check if the found piece is an enemy rook or queen
-                if(pos == -1*side*2 || pos == -1*side*6){
+                if(pos == -1*side*4 || pos == -1*side*6 || (i == 1 && pos == -1*side*5)){ // first position can be a king
                     // If it is, the king is in check
                     undo_move();
                     return true;
@@ -253,7 +258,7 @@ private:
             int pos = board[king_row - i][king_col + i];
             if(pos != 0){
                 // check if the found piece is an enemy rook or queen
-                if(pos == -1*side*2 || pos == -1*side*6){
+                if(pos == -1*side*4 || pos == -1*side*6 || (i == 1 && pos == -1*side*5)){ // first position can be a king
                     // If it is, the king is in check
                     undo_move();
                     return true;
@@ -267,7 +272,7 @@ private:
             int pos = board[king_row + i][king_col - i];
             if(pos != 0){
                 // check if the found piece is an enemy rook or queen
-                if(pos == -1*side*2 || pos == -1*side*6){
+                if(pos == -1*side*4 || pos == -1*side*6 || (i == 1 && pos == -1*side*5)){ // first position can be a king
                     // If it is, the king is in check
                     undo_move();
                     return true;
@@ -286,6 +291,21 @@ private:
             if(row >= 0 && row < 8 && col >= 0 && col < 8){
                 int pos = board[row][col];
                 if(pos == -1*side*3){
+                    // If it is, the king is in check
+                    undo_move();
+                    return true;
+                }
+            }
+        }
+
+        // Check for pawns
+        int pawn_moves[2][2] = {{king_row+(-1*side), king_col+1}, {king_row+(-1*side), king_col-1}};
+        for (int i = 0; i < 2; i++) {
+            int row = pawn_moves[i][0];
+            int col = pawn_moves[i][1];
+            if(row >= 0 && row < 8 && col >= 0 && col < 8){
+                int pos = board[row][col];
+                if(pos == -1*side){
                     // If it is, the king is in check
                     undo_move();
                     return true;
@@ -430,7 +450,6 @@ private:
                 }
             }
         }
-       
        return moves;
     }
     // Function to check for pawn moves
@@ -612,9 +631,27 @@ public:
         if (piece > 0) {
             white_castle[0] = move.old_castle[0];
             white_castle[1] = move.old_castle[1];
+            if(move.did_castle[0]) {
+                // Move the rook back
+                board[7][0] = 2;
+                board[7][3] = 0;
+            }else if(move.did_castle[1]){
+                // Move the rook back
+                board[7][7] = 2;
+                board[7][5] = 0;
+            }
         }else{
             black_castle[0] = move.old_castle[0];
             black_castle[1] = move.old_castle[1];
+            if(move.did_castle[0]) {
+                // Move the rook back
+                board[7][0] = 2;
+                board[7][3] = 0;
+            }else if(move.did_castle[1]){
+                // Move the rook back
+                board[7][7] = 2;
+                board[7][5] = 0;
+            }
         }
         // Set back king pos
         if (piece == 5) {
@@ -624,6 +661,8 @@ public:
             king_pos[1][0] = move.from_row;
             king_pos[1][1] = move.from_col;
         }
+        // Set back the game state if the king died
+        game_over = false;
     }
 
         // Function to move pieces
@@ -631,6 +670,7 @@ public:
         // retrieve the piece
         int piece = board[start_row][start_col];
         int sign = piece > 0 ? 1 : -1;
+        bool did_castle[2] = {false, false};
         // values for saving last move
         bool old_castle[2];
         int old_passant[2] = {en_passant[0], en_passant[1]};
@@ -690,14 +730,16 @@ public:
         if (std::abs(piece) == 5){
             // Check if we are moving the white king
             if (sign == 1){
-                if (white_castle[0] && end_col == 1){
+                if (white_castle[0] && end_col == 2){
                     // Move the rook
                     board[7][0] = 0;
-                    board[7][2] = 2;
+                    board[7][3] = 2;
+                    did_castle[0] = true;
                 }else if (white_castle[1] && end_col == 6){
                     // Move the rook
                     board[7][7] = 0;
                     board[7][4] = 2;
+                    did_castle[1] = true;
                 }
                 // Set castling to false
                 white_castle[0] = false;
@@ -707,14 +749,16 @@ public:
                 king_pos[0][0] = end_row;
                 king_pos[0][1] = end_col;
             }else{
-                if (black_castle[0] && end_col == 1){
+                if (black_castle[0] && end_col == 2){
                     // Move the rook
                     board[0][0] = 0;
                     board[0][3] = -2;
+                    did_castle[0] = true;
                 }else if (black_castle[1] && end_col == 6){
                     // Move the rook
                     board[0][7] = 0;
                     board[0][5] = -2;
+                    did_castle[1] = true;
                 }
                 // Set castling to false
                 black_castle[0] = false;
@@ -727,8 +771,14 @@ public:
         }
         // Get the piece captued
         int captured_piece = board[end_row][end_col];
+
+        // Set the game to over if the king is dead
+        if (captured_piece == 5 || captured_piece == -5){
+            game_over = true;
+        }
+
         // save the move
-        ChessMove move = {start_row, start_col, end_row, end_col, captured_piece, {old_passant[0], old_passant[1]}, {old_castle[0], old_castle[1]}};
+        ChessMove move = {start_row, start_col, end_row, end_col, captured_piece, {old_passant[0], old_passant[1]}, {old_castle[0], old_castle[1]}, {did_castle[0], did_castle[1]}};
         
         move_history.push_back(move);
         // Move the piece
@@ -736,7 +786,40 @@ public:
         // Remove the piece from the old position
         board[start_row][start_col] = 0;
     }
+    
+    // Get all the moves possible
+    std::vector<std::array<int, 4>> get_allmoves(int side){
+        std::vector<std::array<int, 4>> moves;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (board[i][j] != 0 && board[i][j] > 0 == side > 0) {
+                    std::vector<std::array<int, 4>> temp = get_valid_moves(i, j);
+                    moves.insert(moves.end(), temp.begin(), temp.end());
+                }
+            }
+        }
+        return moves;
+    }
 
+    // Is the game over
+    bool is_game_over(){
+        return game_over;
+    }
+
+    int get_board_value(){
+        int score;
+        if(game_over){
+            int no_king[2][2] = {{-1, -1}, {-1, -1}};
+            score = evaluate_board(board, no_king);
+        }else{
+            score = evaluate_board(board, king_pos);
+        }
+        return score;
+    }
+
+
+    //////////// DEBUGGING ////////////
+    // Print the current board
     void print_board(){
         // Print the array
         std::cout << "Current board:" << std::endl;
@@ -751,28 +834,27 @@ public:
         std::cout << "Black castling rights: " << black_castle[0] << black_castle[1] << std::endl;
         std::cout << "en passant rights: " << en_passant[0] << en_passant[1] << std::endl;
     }
-    
-    std::vector<std::array<int, 4>> get_allmoves(int side){
-        std::vector<std::array<int, 4>> moves;
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                if (board[i][j] != 0 && board[i][j] > 0 == side > 0) {
-                    std::vector<std::array<int, 4>> temp = get_valid_moves(i, j);
-                    moves.insert(moves.end(), temp.begin(), temp.end());
-                }
-            }
-        }
-        return moves;
-    }
-
-    float get_board_value(){
-        float score = evaluate_board(board, king_pos);
-        return score;
-    }
-
+    // Return valid moves of a single piece
     std::vector<std::array<int, 4>> debug_moves(int row, int col){
         return get_valid_moves(row, col);
     }
+    // Check if the board is equal to another board
+    bool areEqual(const std::array<std::array<int, 8>, 8>& new_board)
+    {
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            if (board[i][j] != new_board[i][j]) {
+                return false;
+            }
+        }
+    }
+    return true;
+    }
+    // Get the board
+    std::array<std::array<int, 8>, 8> get_board(){
+        return board;
+    }
+    //////////// DEBUGGING ////////////
 
     // Constructer, used for setting the board up
     Board(std::string FEN){

@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <board_representation.h>
 #include <cmath>
+#include <limits>
 
 struct MiniMaxResult {
     int score;
@@ -26,7 +27,7 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, bool maximiz
     */
 
     // When we've found the best solution
-    if (depth == 0) {
+    if (depth == 0 || board->is_game_over()) {
         int score = board->get_board_value();
         return {score, { -1, -1, -1, -1 }};
     }
@@ -37,10 +38,10 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, bool maximiz
         // Generate all possible moves
         std::vector<std::array<int, 4>> possible_moves = board->get_allmoves(1);
         // Initiate max score as a low value
-        int max_score = -1000000;
+        int max_score = std::numeric_limits<int>::min();
         // When there are no moves it's either a mate or the king is dead
         if (possible_moves.size() == 0) {
-            int score = -10000;
+            int score = board->get_board_value();
             return {score, {-1, -1, -1, -1}};
         }
         
@@ -56,12 +57,12 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, bool maximiz
             // Set the scores
             if (max_score < result.score) {
                 max_score = result.score;
-                best_move = {move[0], move[1], move[2], move[3]};
-                alpha = std::max(alpha, max_score);
-                // Prune if the alpha is bigger than beta
-                if (beta <= alpha) {
-                    break;
-                }
+                best_move = {move[0], move[1], move[2], move[3]};  
+            }
+            alpha = std::max(alpha, max_score);
+            // Prune if the alpha is bigger than beta
+            if (beta <= alpha) {
+                break;
             }
         }
 
@@ -70,12 +71,12 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, bool maximiz
         return {max_score, best_move};
     } else {
         // Initiate max score as a low value
-        int min_score = 1000000;
+        int min_score = std::numeric_limits<int>::max();
         // Generate all possible moves
         std::vector<std::array<int, 4>> possible_moves = board->get_allmoves(-1);
         // When there are no moves it's either a mate or the king is dead
         if (possible_moves.size() == 0) {
-            int score = 10000;
+            int score = board->get_board_value();
             return {score, {-1, -1, -1, -1}};
         }
         for (int i = 0; i < possible_moves.size(); i++) {
@@ -90,10 +91,10 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, bool maximiz
             if (min_score >= result.score) {
                 min_score = result.score;
                 best_move = {move[0], move[1], move[2], move[3]};
-                beta = std::min(beta, min_score);
-                if (beta <= alpha) {
-                    break;
-                }
+            }
+            beta = std::min(beta, min_score);
+            if (beta <= alpha) {
+                break;
             }
         }
 

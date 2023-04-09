@@ -52,7 +52,10 @@ class Main:
 
             if AI_PLAY:
                 FEN = board.to_fen(game.curr_player)
-                move = cpp.cpp_minimax(f'{1 if game.curr_player == "white" else -1},{FEN}')
+                move = cpp.cpp_minimax(FEN, game.curr_player, depth=4)
+                if move[0] == -1:
+                    print('end game')
+                    continue
                 print('current move: ', move)
                 p = board.squares[move[0]][move[1]].piece
                 print('piece at place: ', p.name)

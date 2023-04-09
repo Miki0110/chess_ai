@@ -11,7 +11,7 @@ std::array<std::array<int, 8>, 8> flip_horizontal(const std::array<std::array<in
     std::array<std::array<int, 8>, 8> flipped_arr;
     for (int i = 0; i < 8; ++i) {
         for (int j = 0; j < 8; ++j) {
-            flipped_arr[i][j] = arr[7-i][j];
+            flipped_arr[i][j] = -arr[7-i][j];
         }
     }
     return flipped_arr;
@@ -56,13 +56,13 @@ const std::unordered_map<int, int> piece_value = {
     {2, 50},  // Rook
     {3, 30},  // Knight
     {4, 30},  // Bishop
-    {5, 10000000},  // King (arbitrary high value to avoid being captured)
+    {5, 10000},  // King (arbitrary high value to avoid being captured)
     {6, 90},  // Queen
     {-1, -10}, // Pawn
     {-2, -50}, // Rook
     {-3, -30}, // Knight
     {-4, -30}, // Bishop
-    {-5, -10000000}, // King (arbitrary high value to avoid being captured)
+    {-5, -10000}, // King (arbitrary high value to avoid being captured)
     {-6, -90}  // Queen
 };
 

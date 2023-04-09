@@ -18,8 +18,8 @@ class CplusAI:
         # Launch the C++ program as a subprocess
         self.cpp_process = Popen(folder_path, shell=True, stdin=PIPE, stdout=PIPE)
 
-    def cpp_minimax(self, message):
-        print(message)
+    def cpp_minimax(self, FEN, player, depth=5):
+        message = f'{1 if player == "white" else -1},{depth},{FEN}'
         # Add a new line for the c++ program
         message = message + '\n'
         # Send the string
@@ -29,13 +29,12 @@ class CplusAI:
         resulting_move = [0,0,0,0]
         while True:
             line_returned = self.cpp_process.stdout.readline().strip().decode("utf-8")
-
+            print(line_returned)
             if "We are done" in line_returned:
                 break
             if "Best move: " in line_returned:
-                print(line_returned)
+
                 numbers = line_returned.split(" ")[-1].split(',')
-                print(numbers)
                 for i, number in enumerate(numbers):
                     resulting_move[i] = eval(number)
         return resulting_move

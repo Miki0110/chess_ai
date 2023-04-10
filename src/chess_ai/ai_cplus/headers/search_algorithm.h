@@ -12,19 +12,18 @@ struct MiniMaxResult {
     std::array<int, 4> move;
 };
 
+
 // Todo implement hashtable
-//std::unordered_map<std::string, std::pair<int, std::vector<int>>> &hash_table={}
-MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, bool maximizing_player=true) {
+MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, std::unordered_map<std::string, MiniMaxResult> &hash_table, bool maximizing_player) {
     // Check if the board state has already been evaluated and stored in the hash table
-    /*
+
     int side = maximizing_player ? 1 : -1;
 
     // The FEN key is used to see save positions in the hashtable
-    std::string board_key = board.board_to_FEN(side);
+    std::string board_key = board->board_to_fen(side);
     if (hash_table.find(board_key) != hash_table.end()) {
         return hash_table[board_key];
     }
-    */
 
     // When we've found the best solution
     if (depth == 0 || board->is_game_over()) {
@@ -50,7 +49,7 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, bool maximiz
             // Move the piece
             board->move_piece(move[0], move[1], move[2], move[3]);
             // Repeat the process
-            MiniMaxResult result = minimax(depth - 1, board, alpha, beta, false);
+            MiniMaxResult result = minimax(depth - 1, board, alpha, beta, hash_table, false);
             // Undo the move we just did
             board->undo_move();
 
@@ -67,7 +66,7 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, bool maximiz
         }
 
         // Store the board state and its score in the hash table
-        //hash_table[board_key] = {max_score, best_move};
+        hash_table[board_key] = {max_score, best_move};
         return {max_score, best_move};
     } else {
         // Initiate max score as a low value
@@ -84,7 +83,7 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, bool maximiz
             // Move the piece
             board->move_piece(move[0], move[1], move[2], move[3]);
             // Repeat the process
-            MiniMaxResult result = minimax(depth - 1, board, alpha, beta, true);
+            MiniMaxResult result = minimax(depth - 1, board, alpha, beta, hash_table, true);
             // Undo the move we just did
             board->undo_move();
             // Set the scores
@@ -99,9 +98,22 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, bool maximiz
         }
 
         // Store the board state and its score in the hash table
-        //hash_table[board_key] = {min_score, best_move};
+        hash_table[board_key] = {min_score, best_move};
         return {min_score, best_move};
     }
+}
+
+
+MiniMaxResult start_minimax(int depth, Board *board, bool maximizing_player) {
+    std::unordered_map<std::string, MiniMaxResult> hash_table = {};
+    std::cout << "Hash table size: " << hash_table.size() << std::endl;  
+    
+    MiniMaxResult result = minimax(depth, board, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), hash_table, maximizing_player);
+
+    // DEBUGGING
+    std::cout << "Hash table size: " << hash_table.size() << std::endl;  
+    
+    return result;
 }
 
 #endif

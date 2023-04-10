@@ -52,7 +52,7 @@ class Main:
 
             if AI_PLAY:
                 FEN = board.to_fen(game.curr_player)
-                move = cpp.cpp_minimax(FEN, game.curr_player, depth=4)
+                move = cpp.cpp_minimax(FEN, game.curr_player, depth=5)
                 if move[0] == -1:
                     print('end game')
                     continue
@@ -67,7 +67,7 @@ class Main:
 
                 if board.valid_move(p, move_class):
                     board.move(p, move_class)
-                    #Advance the game
+                    # Advance the game
                     game.next_turn()
 
 

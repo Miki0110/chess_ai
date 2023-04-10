@@ -27,7 +27,7 @@ int sum_materialvalues(std::array<std::array<int, 8>, 8> board){
             for (int j = 0; j < 8; j++) {
                 value = board[i][j];
                 if (value != 0){
-                    sum += value+mg_value_tables.at(value)[i][j]; // Piece value * the positional value
+                    sum += piece_value.at(value)+mg_value_tables.at(value)[i][j]; // Piece value * the positional value
                     }
             }
         }
@@ -36,7 +36,7 @@ int sum_materialvalues(std::array<std::array<int, 8>, 8> board){
             for (int j = 0; j < 8; j++) {
                 value = board[i][j];
                 if (value != 0){
-                    sum += value+eg_value_tables.at(value)[i][j]; // Piece value * the positional value
+                    sum += piece_value.at(value)+eg_value_tables.at(value)[i][j]; // Piece value * the positional value
                     }
             }
         }

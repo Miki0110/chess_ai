@@ -817,6 +817,70 @@ public:
         return score;
     }
 
+    //Retrieve fen string from the current board
+    std::string board_to_fen(int side){
+        std::string FEN = "";
+        // Loop through the board
+        for(int row=0; row < 8; row++){
+            int empty = 0;
+            for(int col=0; col < 8; col++){
+                int piece = board[row][col];
+                if(piece == 0){
+                    empty++;
+                }else{
+                    if(empty > 0){
+                        FEN += std::to_string(empty);
+                        empty = 0;
+                    }
+                    FEN += number_to_piece.at(piece);
+                }
+            }
+            if(empty > 0){
+                FEN += std::to_string(empty);
+            }
+            if(row < 7){
+                FEN += "/";
+            }
+        }
+        // Add the current player
+        if(side == 1){
+            FEN += " w ";
+        }else{
+            FEN += " b ";
+        }
+
+        // Add the castling rights
+        if(white_castle[0] || white_castle[1] || black_castle[0] || black_castle[1]){
+            if(white_castle[1]){
+                FEN += "K";
+            }
+            if(white_castle[0]){
+                FEN += "Q";
+            }
+            if(black_castle[1]){
+                FEN += "k";
+            }
+            if(black_castle[0]){
+                FEN += "q";
+            }
+        }else{
+            FEN += "-";
+        }
+        FEN += " ";
+
+        // Add the en passant
+        if(en_passant[0] != -1){
+            FEN += ALPHACOLS.at(en_passant[0]);
+            FEN += std::to_string(en_passant[1]);
+        }else{
+            FEN += "-";
+        }
+        FEN += " 0 1";
+
+        return FEN;
+    }
+
+
 
     //////////// DEBUGGING ////////////
     // Print the current board

@@ -20,10 +20,9 @@ int main() {
     // For testing specific moves
     /*std::string test = "rnb1k2r/3p2b1/3P4/p2B1P2/7p/1P2p1P1/PP2P2P/2RK3R b kq - 22 39";
     Board board(test);
-    std::vector<std::array<int, 4>> moves = board.debug_moves(0,4);
-    for(int i = 0; i < moves.size(); i++){
-        std::cout << moves[i][0] << "," << moves[i][1] << "," << moves[i][2] << "," << moves[i][3] << std::endl;
-    }*/
+    std::string out = board.board_to_fen(1);
+    std::cout << test << std::endl;
+    std::cout << out << std::endl;*/
 
 
     // For testing randomly
@@ -85,9 +84,9 @@ int main() {
         std::vector<std::array<int, 4>> moves = board.get_allmoves(player);
         MiniMaxResult result;
         if(player == 1){
-            result = minimax(depth, &board, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), true);
+            result = start_minimax(depth, &board, true);
         }else{
-            result = minimax(depth, &board, std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), false);
+            result = start_minimax(depth, &board, false);
         }
         std::vector<std::array<int, 4>> yup = board.debug_moves(result.move[0],result.move[1]);
         for(int i = 0; i < yup.size(); i++){

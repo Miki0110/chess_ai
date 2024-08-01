@@ -1,5 +1,9 @@
+import sys
 import os
-from src.game_engine.move import Move
+# Add src to the system path for module imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from game_engine.move import Move
 
 
 class Piece:
@@ -20,8 +24,8 @@ class Piece:
         self.texture_rect = texture_rect
 
     def set_texture(self):
-        self.texture = os.path.join(os.path.pardir,
-            f'images/{self.color[0]}_{self.name}_png_128px.png')
+        self.texture = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..',
+            f'images/{self.color[0]}_{self.name}_png_128px.png'))
 
     def add_move(self, move):
         self.moves.append(move)
@@ -30,7 +34,7 @@ class Piece:
         self.moves = []
 
     def _create_move(self, in_row, in_col, end_row, end_col):
-        from src.game_engine.chess_board import Square
+        from game_engine.chess_board import Square
         # Create squares
         initial = Square(in_row, in_col)
         final = Square(end_row, end_col)
@@ -41,7 +45,7 @@ class Piece:
 
     # General function for checking if any piece can attack a specific position
     def can_attack(self, squares, start_row, start_col, t_row, t_col):
-        from src.game_engine.chess_board import Square
+        from game_engine.chess_board import Square
         # Calculate possible moves
         self.calc_moves(squares, start_row, start_col)
         # Create move
@@ -53,7 +57,7 @@ class Piece:
         return move in self.moves
 
     def calc_moves(self, squares, row, col):
-        from src.game_engine.chess_board import Square
+        from game_engine.chess_board import Square
         # Go through the possible moves, defined by the piece type
         for row_incr, col_incr in self.move_directions:
             pos_move_row = row + row_incr
@@ -96,7 +100,7 @@ class Pawn(Piece):
         super().__init__('pawn', color, 1.0)
 
     def calc_moves(self, squares, row, col):
-        from src.game_engine.chess_board import Square
+        from game_engine.chess_board import Square
         steps = 1 if self.moved else 2
 
         # Forward movement
@@ -150,7 +154,7 @@ class Knight(Piece):
         super().__init__('knight', color, 3.001)  # I like knights more <3
 
     def calc_moves(self, squares, row, col):
-        from src.game_engine.chess_board import Square
+        from game_engine.chess_board import Square
         # Since knights can only move in the L shape we check all those positions
         possible_moves = [(-2, 1), (-1, 2), (1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1)]
         possible_moves = [(row + x, col + y) for x, y in possible_moves]
@@ -211,7 +215,7 @@ class King(Piece):
         super().__init__('king', color, 10000.0)
 
     def calc_moves(self, squares, row, col):
-        from src.game_engine.chess_board import Square
+        from game_engine.chess_board import Square
         # Go through the possible moves
         move_directions = [(-1, 1), (-1, -1), (1, 1), (1, -1), (-1, 0), (0, 1), (1, 0), (0, -1)]
         possible_moves = [(row + x, col + y) for x, y in move_directions]

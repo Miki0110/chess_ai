@@ -1,13 +1,16 @@
 
 import sys
+import os
+# Add src to the system path for module imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
-from src.constants import *
-from src.game_engine.chess_board import Square
-from src.game_engine.game import Game
-from src.game_engine.move import Move
-from src.chess_ai.search_algorithm import *
-from src.chess_ai.board_representation import *
-from src.chess_ai.ai_cplus.cpp_communicator import *
+from constants import *
+from game_engine.chess_board import Square
+from game_engine.game import Game
+from game_engine.move import Move
+from chess_ai.search_algorithm import *
+from chess_ai.board_representation import *
+from chess_ai.ai_cplus.cpp_communicator import *
 
 VS_AI = False  # True to play against the bot
 AI_PLAY = True  # True to let the bot fight itself
@@ -52,7 +55,7 @@ class Main:
 
             if AI_PLAY:
                 FEN = board.to_fen(game.curr_player)
-                move = cpp.cpp_minimax(FEN, game.curr_player, depth=5)
+                move = cpp.cpp_minimax(FEN, game.curr_player, depth=6)
                 if move[0] == -1:
                     print('end game')
                     continue

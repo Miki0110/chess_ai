@@ -1,4 +1,9 @@
-from src.chess_ai.eval_functions import *
+import sys
+import os
+# Add src to the system path for module imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from chess_ai.eval_functions import *
 import multiprocessing as mp
 import time
 

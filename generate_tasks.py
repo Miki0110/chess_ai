@@ -50,7 +50,7 @@ for test_file in test_files:
             "-g",
             f"{unit_tests_folder}/{test_file}",
             "-o",
-            f"{unit_tests_folder}/{test_name}.exe",
+            f"{test_name}.exe",
             "-I",
             headers_folder
         ],

@@ -13,7 +13,7 @@ void test_material_evaluation() {
         {-1, -1, -1, -1, -1, -1, -1, -1},
         {-2, -3, -4, -6, -5, -4, -3, -2}
     }};
-    int score = sum_materialvalues(board);
+    int score = sum_material_values(board);
     assert(score == 0); // Balanced material
     std::cout << "Material Evaluation Test Passed!\n";
 }

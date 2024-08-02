@@ -49,6 +49,9 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, std::unorder
     // Generate all possible moves
     std::vector<std::array<int, 4>> possible_moves = board->get_allmoves(side);
 
+    // Print progress every 5 seconds
+    printProgress(start_time, depth, best_move, best_score);
+
     // No moves available means checkmate or stalemate
     if (possible_moves.empty()) {
         int score = board->get_board_value();
@@ -86,8 +89,7 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, std::unorder
             break;
         }
 
-        // Print progress every 5 seconds
-        printProgress(start_time, depth, best_move, best_score);
+        
     }
 
     // Store the board state and its score in the hash table

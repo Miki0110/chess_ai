@@ -17,35 +17,6 @@
 // This program should sit and wait for FEN strings from the python program
 int main() {
     std::string input_string;
-    // For testing specific moves
-    /*std::string test = "rnb1k2r/3p2b1/3P4/p2B1P2/7p/1P2p1P1/PP2P2P/2RK3R b kq - 22 39";
-    Board board(test);
-    std::string out = board.board_to_fen(1);
-    std::cout << test << std::endl;
-    std::cout << out << std::endl;*/
-
-
-    // For testing randomly
-    /*std::string test = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    Board board(test);
-    for(int i = 0; i < 10; i++){
-        std::array<std::array<int, 8>, 8> ori_board = board.get_board();
-        int move[4] = {rand() % 8, rand() % 8, rand() % 8, rand() % 8};
-        board.move_piece(move[0], move[1], move[2], move[3]);
-        std::array<std::array<int, 8>, 8> after_board = board.get_board();
-        board.undo_move();
-        if(!board.areEqual(ori_board)){
-            std::cout << "Something went wrong" << std::endl;
-            std::cout << "Move: " << move[0] << "," << move[1] << "," << move[2] << "," << move[3] << std::endl;
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                std::cout << after_board[i][j] << " ";
-            }
-        std::cout << std::endl;
-        }
-            board.print_board();
-        }
-    }*/
 
     while (std::getline(std::cin, input_string))
     {

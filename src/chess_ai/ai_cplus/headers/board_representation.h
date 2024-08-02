@@ -140,7 +140,7 @@ private:
     }
 
     // Function to check if the move results in a checkmate
-    bool check_in_mate(int start_row, int start_col, int end_row, int end_col){
+    bool is_check(int start_row, int start_col, int end_row, int end_col){
         // Retrieve the side
         int side = board[start_row][start_col] > 0 ? 1 : -1;
         
@@ -452,6 +452,7 @@ private:
         }
        return moves;
     }
+
     // Function to check for pawn moves
     std::vector<std::array<int, 4>> pawn_move_calc(int p_row, int p_col){
         int piece = board[p_row][p_col];
@@ -599,7 +600,7 @@ private:
         // check the moves for checks
         for (int i = 0; i < moves.size(); i++) {
             // Check if the move is valid
-            if (check_in_mate(moves[i][0], moves[i][1], moves[i][2], moves[i][3])) {
+            if (is_check(moves[i][0], moves[i][1], moves[i][2], moves[i][3])) {
                 // If the move is not valid remove it from the list
                 moves.erase(moves.begin() + i);
                 i--;
@@ -645,12 +646,12 @@ public:
             black_castle[1] = move.old_castle[1];
             if(move.did_castle[0]) {
                 // Move the rook back
-                board[7][0] = 2;
-                board[7][3] = 0;
+                board[0][0] = -2;
+                board[0][3] = 0;
             }else if(move.did_castle[1]){
                 // Move the rook back
-                board[7][7] = 2;
-                board[7][5] = 0;
+                board[0][7] = -2;
+                board[0][5] = 0;
             }
         }
         // Set back king pos
@@ -686,8 +687,8 @@ public:
         if (std::abs(piece) == 1){
             // Check if the pawn is moving two steps and if there are enemies nearby
             if ((std::abs(start_row - end_row) == 2) &&
-               (end_col <= 7 && board[end_row][end_col+1] == -1*piece) ||
-               (end_col >= 0 && board[end_row][end_col-1] == -1*piece)){
+                ((end_col <= 7 && board[end_row][end_col+1] == -1*piece) ||
+                (end_col >= 0 && board[end_row][end_col-1] == -1*piece))){
                     // Set the possible move for en passant
                     en_passant[0] = end_row+piece;
                     en_passant[1] = end_col;
@@ -738,7 +739,7 @@ public:
                 }else if (white_castle[1] && end_col == 6){
                     // Move the rook
                     board[7][7] = 0;
-                    board[7][4] = 2;
+                    board[7][5] = 2;
                     did_castle[1] = true;
                 }
                 // Set castling to false
@@ -870,8 +871,8 @@ public:
 
         // Add the en passant
         if(en_passant[0] != -1){
-            FEN += ALPHACOLS.at(en_passant[0]);
-            FEN += std::to_string(en_passant[1]);
+            FEN += ALPHACOLS.at(en_passant[1]);
+            FEN += std::to_string(en_passant[0]+1);
         }else{
             FEN += "-";
         }
@@ -880,7 +881,35 @@ public:
         return FEN;
     }
 
+    // Function for generating a hashkey
+    std::string generate_hash_key(int side) {
+        std::string key = "";
 
+        for (int row = 0; row < 8; ++row) {
+            for (int col = 0; col < 8; ++col) {
+                int piece = board[row][col];
+                key += std::to_string(piece) + ",";
+            }
+        }
+
+        key += side == 1 ? "w" : "b";
+        key += ",";
+        
+        key += white_castle[0] ? "Q" : "";
+        key += white_castle[1] ? "K" : "";
+        key += black_castle[0] ? "q" : "";
+        key += black_castle[1] ? "k" : "";
+        key += ",";
+        
+        if (en_passant[0] != -1) {
+            key += ALPHACOLS.at(en_passant[0]);
+            key += std::to_string(en_passant[1]);
+        } else {
+            key += "-";
+        }
+
+        return key;
+}
 
     //////////// DEBUGGING ////////////
     // Print the current board

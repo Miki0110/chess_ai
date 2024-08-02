@@ -52,7 +52,7 @@ class Main:
 
             if AI_PLAY:
                 FEN = board.to_fen(game.curr_player)
-                move = cpp.cpp_minimax(FEN, game.curr_player, depth=5)
+                move = cpp.cpp_minimax(FEN, game.curr_player, depth=4)
                 if move[0] == -1:
                     print('end game')
                     continue

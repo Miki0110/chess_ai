@@ -20,7 +20,7 @@ MiniMaxResult minimax(int depth, Board *board, int alpha, int beta, std::unorder
     int side = maximizing_player ? 1 : -1;
 
     // The FEN key is used to see save positions in the hashtable
-    std::string board_key = board->board_to_fen(side);
+    std::string board_key = board->generate_hash_key(side);
     if (hash_table.find(board_key) != hash_table.end()) {
         return hash_table[board_key];
     }

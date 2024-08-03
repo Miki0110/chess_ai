@@ -1,66 +1,63 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
-#include <eval_values.h>
-#include <eval_functions.h>
-#include <board_representation.h>
-#include <search_algorithm.h>
 #include <cassert>
+#include "ChessBoard.h"
+#include "MoveGenerator.h"
 
-// Function to print the board state
-void print_board(const std::array<std::array<int, 8>, 8>& board) {
-    for (int i = 0; i < 8; ++i) {
-        for (int j = 0; j < 8; ++j) {
-            std::cout << board[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
+
+void testMoveApplicationAndUndo() {
+    std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; // Starting position
+    ChessBoard board(fen);
+
+    // Generate moves for white
+    auto moves = MoveGenerator::generateLegalMoves(board, true);
+    assert(!moves.empty());
+
+    // Apply the first move
+    Move firstMove = moves[0];
+    board.applyMove(firstMove);
+
+    // Undo the move
+    board.undoMove(firstMove);
+
+    // Check if board is back to initial state
+    uint64_t initialOccupancy = 0xFFFF00000000FFFF;
+    assert(board.getAllOccupancy() == initialOccupancy);
+
+    std::cout << "Move Application and Undo Test Passed" << std::endl;
 }
 
-// Function to run tests
-void run_tests() {
-    // Test FEN parsing
-    Board board1("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    assert(board1.board_to_fen(1) == "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+void testZobristHashing() {
+    std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; // Starting position
+    ChessBoard board(fen);
 
-    // Test move generation
-    Board board2("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    auto moves = board2.get_allmoves(1);
-    assert(moves.size() == 20);
+    uint64_t initialHash = board.hash();
 
-    // Test evaluation function
-    std::array<std::array<int, 8>, 8> test_board = {{
-        {2, 3, 4, 6, 5, 4, 3, 2},
-        {1, 1, 1, 1, 1, 1, 1, 1},
-        {0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0},
-        {-1, -1, -1, -1, -1, -1, -1, -1},
-        {-2, -3, -4, -6, -5, -4, -3, -2}
-    }};
-    assert(sum_materialvalues(test_board) == 0);
+    // Generate moves and apply one
+    auto moves = MoveGenerator::generateLegalMoves(board, true);
+    assert(!moves.empty());
+    Move firstMove = moves[0];
+    board.applyMove(firstMove);
 
-    std::cout << "All tests passed!" << std::endl;
+    // Hash should change after move
+    uint64_t afterMoveHash = board.hash();
+    assert(initialHash != afterMoveHash);
+
+    // Undo move
+    board.undoMove(firstMove);
+
+    // Hash should be back to initial state
+    uint64_t afterUndoHash = board.hash();
+    assert(initialHash == afterUndoHash);
+
+    std::cout << "Zobrist Hashing Test Passed" << std::endl;
 }
 
-// Function to benchmark the MiniMax algorithm
-void benchmark_minimax() {
-    Board board("rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 0 1");
-    
-    auto start_time = std::chrono::high_resolution_clock::now();
-    MiniMaxResult result = start_minimax(4, &board, true);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    
-    std::chrono::duration<double> duration = end_time - start_time;
-    std::cout << "MiniMax took " << duration.count() << " seconds." << std::endl;
-    std::cout << "Best move: " << result.move[0] << "," << result.move[1] << "," << result.move[2] << "," << result.move[3] << std::endl;
-    std::cout << "Score: " << result.score << std::endl;
-}
+
 
 int main() {
-    run_tests();
-    benchmark_minimax();
+    testMoveApplicationAndUndo();
+    testZobristHashing();
     return 0;
 }

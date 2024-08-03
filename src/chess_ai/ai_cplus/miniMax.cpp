@@ -6,12 +6,14 @@
 #include <array>
 #include <sstream>
 #include <limits>
+#include <unordered_map>
+#include <utility>
 
-#include <eval_values.h>
-#include <eval_functions.h>
-#include <board_representation.h>
-#include <search_algorithm.h>
+#include "ChessBoard.h"
+#include "Minimax.h"
+#include "Move.h"
 #include <random>
+
 
 
 // This program should sit and wait for FEN strings from the python program
@@ -80,21 +82,22 @@ int main() {
         std::cout << "FEN: " << fen << std::endl;
 
         // start the board up   
-        Board board(fen);
-        std::vector<std::array<int, 4>> moves = board.get_allmoves(player);
-        MiniMaxResult result;
-        if(player == 1){
-            result = start_minimax(depth, &board, true);
-        }else{
-            result = start_minimax(depth, &board, false);
-        }
-        std::vector<std::array<int, 4>> yup = board.debug_moves(result.move[0],result.move[1]);
-        for(int i = 0; i < yup.size(); i++){
-        std::cout << yup[i][0] << "," << yup[i][1] << "," << yup[i][2] << "," << yup[i][3] << std::endl;
-        }
+        ChessBoard board(fen);
         
-        std::cout << "Best move: " << result.move[0] << "," << result.move[1] << "," << result.move[2] << "," << result.move[3] << std::endl;
-        std::cout << "Score: " << result.score << std::endl;
+        Move result(-1, -1, -1, -1); // Initialize the result move
+        if(player == 1){
+            result = Minimax::findBestMove(board, depth, true);
+        }else{
+            result = Minimax::findBestMove(board, depth, false);
+        }
+        // Convert the move to array indices and get the result
+        auto indices = convertMoveToArrayIndices(result);
+
+        // Use the indices as needed
+        auto fromIndex = indices.first;
+        auto toIndex = indices.second;
+        
+        std::cout << "Best move: " << fromIndex.first << "," << fromIndex.second << "," << toIndex.first << "," << toIndex.second << std::endl;
         std::cout << "We are done" << std::endl;
     }
 

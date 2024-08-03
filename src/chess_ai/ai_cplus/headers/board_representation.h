@@ -41,6 +41,7 @@ private:
     // Function that resets the board
     void reset_board(){
         board.fill({0, 0, 0, 0, 0, 0, 0, 0});
+        pieces_alive = 0;
     }
 
     // Funtion that sets the board, given a FEN string
@@ -67,6 +68,7 @@ private:
                 col += value - '0' - 1;
             }else{
                 board[row][col] = piece_to_number.at(value);
+                pieces_alive++;
             }
             col++;
         }
@@ -612,6 +614,7 @@ private:
 public:
     // Class values
     int current_player = 1; // 1 = white, -1 = black
+    int pieces_alive = 32; // 32 pieces in total during the start of the game
 
     // Function to undo a move
     void undo_move(){
@@ -625,6 +628,10 @@ public:
         board[move.from_row][move.from_col] = piece;
         // Remove the piece from the old position
         board[move.to_row][move.to_col] = move.captured_piece;
+        if (move.captured_piece != 0) {
+            pieces_alive++;
+        }
+
         // set back passant
         en_passant[0] = move.old_passant[0];
         en_passant[1] = move.old_passant[1];
@@ -773,6 +780,10 @@ public:
         // Get the piece captued
         int captured_piece = board[end_row][end_col];
 
+        if (captured_piece != 0){
+            pieces_alive--;
+        }
+
         // Set the game to over if the king is dead
         if (captured_piece == 5 || captured_piece == -5){
             game_over = true;
@@ -811,9 +822,9 @@ public:
         int score;
         if(game_over){
             int no_king[2][2] = {{-1, -1}, {-1, -1}};
-            score = evaluate_board(board, no_king);
+            score = evaluate_board(board, pieces_alive, no_king);
         }else{
-            score = evaluate_board(board, king_pos);
+            score = evaluate_board(board, pieces_alive, king_pos);
         }
         return score;
     }

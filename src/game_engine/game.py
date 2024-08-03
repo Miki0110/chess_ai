@@ -1,6 +1,11 @@
-from src.constants import *
-from src.game_engine.chess_board import Board, Square
-from src.game_engine.mouse import Mouse
+import sys
+import os
+# Add src to the system path for module imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from constants import *
+from game_engine.chess_board import Board, Square
+from game_engine.mouse import Mouse
 
 
 class Game:

@@ -24,13 +24,13 @@ const std::unordered_map<int, char> number_to_piece = {
     {2, 'R'},  // Rook
     {3, 'N'},  // Knight
     {4, 'B'},  // Bishop
-    {5, 'K'},  // King (arbitrary high value to avoid being captured)
+    {5, 'K'},  // King 
     {6, 'Q'},  // Queen
     {-1, 'p'}, // Pawn
     {-2, 'r'}, // Rook
     {-3, 'n'}, // Knight
     {-4, 'b'}, // Bishop
-    {-5, 'k'}, // King (arbitrary high value to avoid being captured)
+    {-5, 'k'}, // King
     {-6, 'q'}  // Queen
 };
 

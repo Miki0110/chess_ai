@@ -1,7 +1,11 @@
+import sys
+import os
+# Add src to the system path for module imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import copy
 
-from src.constants import *
-from src.game_engine.pieces import *
+from constants import *
+from game_engine.pieces import *
 
 
 class Board:

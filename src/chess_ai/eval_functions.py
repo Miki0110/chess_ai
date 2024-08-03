@@ -1,6 +1,11 @@
-from src.constants import *
-from src.chess_ai.board_representation import *
-from src.chess_ai.evaluation_values import *
+import sys
+import os
+# Add src to the system path for module imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from constants import *
+from chess_ai.board_representation import *
+from chess_ai.evaluation_values import *
 
 
 def evaluate_board(chess_board):

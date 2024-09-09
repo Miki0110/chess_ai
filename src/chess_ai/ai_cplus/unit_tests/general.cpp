@@ -4,6 +4,7 @@
 #include <cassert>
 #include "ChessBoard.h"
 #include "MoveGenerator.h"
+#include "Move.h"
 
 
 void testMoveApplicationAndUndo() {
@@ -50,6 +51,37 @@ void testZobristHashing() {
     // Hash should be back to initial state
     uint64_t afterUndoHash = board.hash();
     assert(initialHash == afterUndoHash);
+    
+    // Test hash for castling rights
+    std::string castlingFen = "r2qk2r/pppppppp/8/2n5/8/8/PPPPPPPP/R2QK2R w KQkq - 0 1"; // Starting position
+    ChessBoard castlingBoard(castlingFen);
+
+    uint64_t castlingHash = castlingBoard.hash();
+
+    // Generate moves and apply one
+    auto castlingMoves = MoveGenerator::generateLegalMoves(castlingBoard, true);
+    auto castlingMove = castlingMoves[0];
+    // Find the castling moves
+    for (const auto& move : castlingMoves) {
+        if (move.isCastling) {
+            castlingMove = move;
+            castlingBoard.applyMove(castlingMove);
+            break;
+        }
+    }
+
+    // Hash should change after castling
+    uint64_t afterCastlingHash = castlingBoard.hash();
+    assert(castlingHash != afterCastlingHash);
+
+    // Undo castling
+    castlingBoard.undoMove(castlingMove);
+
+    // Hash should be back to initial state
+    uint64_t afterUndoCastlingHash = castlingBoard.hash();
+    assert(castlingHash == afterUndoCastlingHash);
+    
+    
 
     std::cout << "Zobrist Hashing Test Passed" << std::endl;
 }

@@ -29,7 +29,8 @@ tasks["tasks"].append({
         "-o",
         f"{workspace_folder}/miniMax.exe",
         "-I",
-        headers_folder
+        headers_folder,
+        "-pthread"
     ],
     "group": {
         "kind": "build",
@@ -50,9 +51,10 @@ for test_file in test_files:
             "-g",
             f"{unit_tests_folder}/{test_file}",
             "-o",
-            f"{workspace_folder}/{test_name}.exe",
+            f"{workspace_folder}/unit_test_{test_name}.exe",
             "-I",
-            headers_folder
+            headers_folder,
+            "-pthread"
         ],
         "group": {
             "kind": "build",

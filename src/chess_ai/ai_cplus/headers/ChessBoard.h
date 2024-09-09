@@ -9,15 +9,20 @@
 #include <random>
 #include <limits>
 #include "Move.h"
+#include "stack"
 
 enum PieceType {
     WHITE_PAWN, WHITE_KNIGHT, WHITE_BISHOP, WHITE_ROOK,
     WHITE_QUEEN, WHITE_KING, BLACK_PAWN, BLACK_KNIGHT,
     BLACK_BISHOP, BLACK_ROOK, BLACK_QUEEN, BLACK_KING
 };
+enum Color {
+    WHITE, BLACK
+};
 
 class ChessBoard {
 public:
+    std::stack<uint64_t> hashHistory;
     // Constructors
     ChessBoard(const std::string& fen) {
         initializeZobristTable();
@@ -80,6 +85,10 @@ public:
 
     // Apply a move to the board
     void applyMove(const Move& move) {
+        // Save the current hash before applying the move
+        hashHistory.push(currentHash);
+
+        // Move the piece on the board
         clearSquare(move.fromSquare);
         setPiece(move.pieceType, move.toSquare);
 
@@ -124,12 +133,13 @@ public:
 
     // Undo a move on the board
     void undoMove(const Move& move) {
+        // Restore the previous hash
+        currentHash = hashHistory.top();
+        hashHistory.pop();
+
+        // Move the piece back to its original square
         clearSquare(move.toSquare);
         setPiece(move.pieceType, move.fromSquare);
-
-        // Revert the Zobrist hash for the move
-        currentHash ^= zobristTable[move.pieceType][move.toSquare];   // Remove piece from new square
-        currentHash ^= zobristTable[move.pieceType][move.fromSquare]; // Place piece back on original square
 
         if (move.capturedPieceType != -1) {
             setPiece(move.capturedPieceType, move.toSquare);
@@ -173,7 +183,6 @@ public:
     // Set a piece at a specific square
     void setPiece(int pieceType, int square) {
         pieceBitboards[pieceType] |= (1ULL << square);
-        updateOccupancy();
     }
 
     // Clear a piece from a specific square
@@ -181,7 +190,6 @@ public:
         for (auto& bitboard : pieceBitboards) {
             bitboard &= ~(1ULL << square);
         }
-        updateOccupancy();
     }
 
     // Get occupancy bitboards
@@ -225,7 +233,19 @@ public:
         }
         return -1; // Empty square
     }
-    
+
+    bool isCapture(const Move& move, bool whiteToMove) const {
+        int targetPiece = getPieceOnSquare(move.toSquare);
+        if (targetPiece == -1) {
+            return false; // No piece on the target square
+        }
+        // Check if the piece on the destination square belongs to the opponent
+        if (whiteToMove) {
+            return targetPiece >= BLACK_PAWN && targetPiece <= BLACK_KING; // Opponent is black
+        } else {
+            return targetPiece >= WHITE_PAWN && targetPiece <= WHITE_KING; // Opponent is white
+        }
+    }
 private:
     std::array<uint64_t, 12> pieceBitboards;  // 12 bitboards for each piece type
     uint64_t whitePieces, blackPieces;        // Overall occupancy for white and black
@@ -394,7 +414,7 @@ private:
     void updateEnPassantSquare(const Move& move) {
         previousEnPassantSquare = enPassantSquare;
         if ((move.pieceType == WHITE_PAWN || move.pieceType == BLACK_PAWN) &&
-            std::abs(move.toSquare - move.fromSquare) == 16) {
+            (move.toSquare ^ move.fromSquare) == 16) {
             enPassantSquare = (move.fromSquare + move.toSquare) / 2;
         } else {
             enPassantSquare = -1;

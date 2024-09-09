@@ -52,6 +52,35 @@ std::string convertMoveToNotation(const Move& move, char promotionPiece = 'Q') {
     return moveNotation;
 }
 
+// Function to convert Notation to Move struct
+Move convertNotationToMove(const std::string& notation) {
+    // Handle castling moves
+    if (notation == "O-O") return Move(4, 6, 0, -1, false, false, true); // Kingside castling
+    if (notation == "O-O-O") return Move(4, 2, 0, -1, false, false, true); // Queenside castling
+
+    int fromSquare = (notation[0] - 'a') + 8 * (notation[1] - '1');
+    int toSquare = (notation[2] - 'a') + 8 * (notation[3] - '1');
+
+    int pieceType = 0;
+    int capturedPieceType = -1;
+    bool isPromotion = false;
+    bool isEnPassant = false;
+
+    // Handle captures
+    if (notation[2] == 'x') {
+        capturedPieceType = 0;
+        toSquare = (notation[3] - 'a') + 8 * (notation[4] - '1');
+    }
+
+    // Handle promotions
+    if (notation.size() == 5) {
+        isPromotion = true;
+        pieceType = 0;
+    }
+
+    return Move(fromSquare, toSquare, pieceType, capturedPieceType, isPromotion, isEnPassant);
+}
+
 // Convert square number to file and rank
 std::pair<int, int> squareToFileRank(int square) {
     // Calculate file (column) and rank (row) from the square number

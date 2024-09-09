@@ -246,7 +246,7 @@ void testKingMoveGeneration() {
     std::cout << "Test 5 Passed: No Castling Due to Blocked Path" << std::endl;
 
     // Test case 6: No Castling Due to King in Check
-    std::string fen6 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K1NR w KQkq - 0 1"; // King is in check
+    std::string fen6 = "rnbqkb1r/pppppppp/8/8/4n3/8/PPPPPKPP/R5NR w kq - 0 1"; // King is in check
     ChessBoard board6(fen6);
     auto moves6 = MoveGenerator::generateLegalMoves(board6, true);
     std::cout << "Test 6 - Castling moves: " << moves6.size() << std::endl;

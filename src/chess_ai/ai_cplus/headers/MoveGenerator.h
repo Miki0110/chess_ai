@@ -27,6 +27,33 @@ public:
         return moves;
     }
 
+    static bool isKingInCheck(const ChessBoard& board, bool whiteToMove) {
+        // Find the king's location
+        int kingSquare = -1;
+        int kingType = whiteToMove ? WHITE_KING : BLACK_KING;
+
+        for (int square = 0; square < 64; ++square) {
+            if (board.getPieceOnSquare(square) == kingType) {
+                kingSquare = square;
+                break;
+            }
+        }
+
+        if (kingSquare == -1) return false; // King not found (error case)
+
+        // Generate all legal moves for the opponent
+        auto opponentMoves = generateLegalMoves(board, !whiteToMove);
+
+        // Check if any move attacks the king
+        for (const Move& move : opponentMoves) {
+            if (move.toSquare == kingSquare) {
+                return true; // King is in check
+            }
+        }
+
+        return false; // No attack on the king
+    }
+
 private:
     static void generatePieceMoves(int fromSquare, int pieceType, std::vector<Move>& moves,
                                    uint64_t occupancy, uint64_t enemyOccupancy, const ChessBoard& board) {
